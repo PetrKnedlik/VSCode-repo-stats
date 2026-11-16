@@ -3,7 +3,7 @@
  * This module has NO VSCode dependencies and is fully testable.
  */
 
-import simpleGit, { SimpleGit } from 'simple-git';
+import { simpleGit, type SimpleGit } from 'simple-git';
 import {
   CommitAnalytics,
   RepositoryInfo,

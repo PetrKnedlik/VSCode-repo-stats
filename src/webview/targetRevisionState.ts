@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import simpleGit from 'simple-git';
+import { simpleGit } from 'simple-git';
 import {
   createEvolutionRevisionHash,
   createTargetRevisionHash,

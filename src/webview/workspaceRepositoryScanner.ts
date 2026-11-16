@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import { simpleGit, type SimpleGit } from 'simple-git';
 import type { RepositoryDiscoveryWarning } from './context.js';
 import { RepositoryRootResolver } from './repositoryRootResolver.js';
 

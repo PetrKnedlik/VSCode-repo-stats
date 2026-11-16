@@ -1,6 +1,6 @@
 import * as os from 'os';
 import * as path from 'path';
-import simpleGit, { type SimpleGit } from 'simple-git';
+import { simpleGit, type SimpleGit } from 'simple-git';
 import { AnalyzerExecutionError, type AnalysisTarget, type ExtensionSettings } from '../../types/index.js';
 import {
   cloneHistogram,
@@ -301,7 +301,7 @@ export class MemberEvolutionRuntime {
 
     const histogram = createEmptyHistogram();
 
-    let blameOutput = '';
+    let blameOutput: string;
     try {
       blameOutput = await this.git.raw([
         'blame',

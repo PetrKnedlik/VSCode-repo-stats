@@ -421,7 +421,7 @@ export class AnalysisCoordinator {
       }
 
       // Get file size
-      let bytes = 0;
+      let bytes: number;
       try {
         const fullPath = path.join(this.repoPath, filePath);
         const stats = await fs.stat(fullPath);

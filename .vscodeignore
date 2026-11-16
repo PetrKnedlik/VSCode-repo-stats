@@ -28,7 +28,7 @@ node_modules/**
 tools/**
 
 # Config files
-.eslintrc.json
+eslint.config.mjs
 tsconfig.json
 
 # Documentation (excluded from package)
