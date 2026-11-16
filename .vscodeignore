@@ -20,7 +20,6 @@ webview-ui/package-lock.json
 .claude/**
 .pi/**
 .desloppify/**
-.bench-results/**
 .git/**
 .gitignore
 node_modules/**
