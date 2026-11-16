@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import Plot from 'react-plotly.js';
+import Plot from '../common/Plot';
 import type { ContributorStats, FrequencyGranularity } from '../../types';
 import { useStore } from '../../store';
 import { fillWeeklyGaps, fillMonthlyGaps } from '../../utils/fillTimeGaps';

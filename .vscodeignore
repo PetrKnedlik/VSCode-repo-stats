@@ -7,7 +7,6 @@ src/**
 # Webview source and dev dependencies
 webview-ui/src/**
 webview-ui/node_modules/**
-webview-ui/test/**
 webview-ui/tsconfig*.json
 webview-ui/vite.config.ts
 webview-ui/package.json
@@ -15,14 +14,6 @@ webview-ui/package-lock.json
 
 # Keep webview dist
 !webview-ui/dist/**
-
-# Test files
-test/**
-**/*.test.ts
-**/*.test.tsx
-**/*.spec.ts
-**/*.spec.tsx
-.vscode-test/**
 
 # Development files
 .vscode/**
@@ -39,10 +30,7 @@ tools/**
 
 # Config files
 .eslintrc.json
-.mocharc.json
-.vscode-test.js
 tsconfig.json
-vitest.config.ts
 
 # Documentation (excluded from package)
 docs/**

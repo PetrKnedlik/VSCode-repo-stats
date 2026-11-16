@@ -1,4 +1,4 @@
-import Plot from 'react-plotly.js';
+import Plot from '../common/Plot';
 import type { CommitStatBucket } from '../../types';
 import { formatCommitBucketLabel } from '../../hooks/useCommitPanelState';
 import { getCommitPlotTheme } from './plotTheme';

@@ -90,9 +90,7 @@ export class RepoStatsProvider implements vscode.WebviewViewProvider {
         vscode.window.showWarningMessage(this.createFileActionFailureMessage(action, reason));
       },
       sendCurrentTargetContext: (webview) => this.contextSync.sendCurrentTargetContext(webview),
-      updateSettings: (settings, target) => this.updateSettings(settings, target),
       updateScopedSetting: (key, value, target) => this.updateScopedSetting(key, value, target),
-      resetScopedSettingOverride: (key) => this.resetScopedSettingOverride(key),
       handlePostSettingsMutation: (webview, shouldPromptReanalysis) =>
         this.contextSync.handlePostSettingsMutation(webview, shouldPromptReanalysis),
     });
@@ -283,18 +281,6 @@ export class RepoStatsProvider implements vscode.WebviewViewProvider {
     await this.analysisService.runAnalysis(webview, selection.selectedTarget);
   }
 
-  private async updateSettings(
-    settings: Parameters<RepositorySettingsService['updateSettings']>[1],
-    target: SettingWriteTarget
-  ): Promise<boolean> {
-    const analysisTarget = await this.analysisTargetService.getSelectedTarget();
-    if (target === 'repo' && !analysisTarget?.settingsRepository) {
-      throw new Error('Repo-scoped settings require a selected repository inside the current workspace.');
-    }
-
-    return this.settingsService.updateSettings(analysisTarget?.settingsRepository, settings, target);
-  }
-
   private async updateScopedSetting<K extends RepoScopableSettingKey>(
     key: K,
     value: RepoScopableSettingValueMap[K],
@@ -306,17 +292,6 @@ export class RepoStatsProvider implements vscode.WebviewViewProvider {
     }
 
     return this.settingsService.updateScopedSetting(analysisTarget?.settingsRepository, key, value, target);
-  }
-
-  private async resetScopedSettingOverride(
-    key: RepoScopableSettingKey
-  ): Promise<boolean> {
-    const analysisTarget = await this.analysisTargetService.getSelectedTarget();
-    if (!analysisTarget?.settingsRepository) {
-      throw new Error('Repo-scoped settings require a selected repository inside the current workspace.');
-    }
-
-    return this.settingsService.resetScopedSettingOverride(analysisTarget.settingsRepository, key);
   }
 
   private async promptReanalysisForFileScopeSetting(webview: vscode.Webview): Promise<void> {

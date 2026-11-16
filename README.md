@@ -117,12 +117,6 @@ Results are cached based on the current Git HEAD, so subsequent opens are instan
 - **Rich interactions**: Click to drill down, double-click to open files, right-click context menu
 - **Keyboard navigation**: Escape to clear selection, Backspace to go up
 
-### Settings Panel
-
-Configure analysis scope, chart granularity, overview display mode, treemap tooltip fields, generated file patterns, binary extensions, Evolution sampling controls, and Commit Metadata extractor presets. Multi-repository analysis comes from repository membership selection (include/exclude exactly the repositories you want to aggregate).
-
-Commit Metadata settings include built-in extractor toggles, custom regex extractor CRUD, alias normalization, unmatched labels, default bucket/chart/metric choices, and multi-value behavior (`countEach`, `split`, or `first`). These settings are repo-scopable because teams often use different commit conventions across repositories.
-
 ## Installation
 
 ### From VS Code Marketplace
@@ -182,7 +176,7 @@ Tip: If assets like `.svg` files inflate LOC totals for your project, add `.svg`
 
 Nested repository discovery through VS Code file search is disabled by default to avoid broad traversal in large monorepos. Workspace folder roots, bookmarked repositories, and declared Git submodules are still discovered. If you enable `repoStats.discovery.scanNestedRepositories`, Repo Stats prunes the search with built-in high-cardinality excludes and enabled VS Code `files.watcherExclude` / `files.exclude` patterns.
 
-The following settings can be saved per-repository via the Settings UI and VS Code workspace-folder settings (`.vscode/settings.json`) when repo scope is available: `excludePatterns`, `generatedPatterns`, `binaryExtensions`, `locExcludedExtensions`, `maxCommitsToAnalyze`, Evolution sampling settings, and `commitMetadata`.
+The following settings can be saved per-repository via VS Code workspace-folder settings (`.vscode/settings.json`) when repo scope is available: `excludePatterns`, `generatedPatterns`, `binaryExtensions`, `locExcludedExtensions`, `maxCommitsToAnalyze`, Evolution sampling settings, and `commitMetadata`.
 
 Use the repository selector in the header (or `Repo Stats: Select Repositories`) to decide exactly which repositories participate in aggregation. Convenience actions include `All`, `Top-level`, and `None`.
 
@@ -278,10 +272,9 @@ git clone https://github.com/guwidoe/vscode-repo-stats.git
 cd vscode-repo-stats
 npm install && cd webview-ui && npm install && cd ..
 
-# Build / Watch / Test / Package
+# Build / Watch / Package
 npm run build
 npm run watch
-npm run test
 npm run package
 ```
 

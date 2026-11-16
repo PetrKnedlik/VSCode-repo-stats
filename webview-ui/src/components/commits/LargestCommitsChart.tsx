@@ -1,4 +1,4 @@
-import Plot from 'react-plotly.js';
+import Plot from '../common/Plot';
 import type { CommitTableRow } from './types';
 import { formatCommitDate } from '../../hooks/useCommitPanelState';
 import { getCommitPlotTheme } from './plotTheme';

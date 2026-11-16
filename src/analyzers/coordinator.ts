@@ -16,6 +16,10 @@ import {
 import { analyzeHeadBlameMetrics, createEmptyBlameMetrics } from './blameMetrics.js';
 import { GitClient, createGitAnalyzer } from './gitAnalyzer.js';
 import {
+  buildCodeFrequencyFromCommitAnalytics,
+  buildContributorStatsFromCommitAnalytics,
+} from './commitAnalytics.js';
+import {
   LOCClient,
   createLOCCounter,
   normalizeExtensionForFilter,
@@ -84,67 +88,45 @@ export class AnalysisCoordinator {
     const repository = await this.gitClient.getRepoInfo();
     onProgress?.('Repository info loaded', 5);
 
-    // Phase 2: Ensure scc is available (may download)
+    // Phase 2: Independent git/scc work runs concurrently; only LOC counting waits for scc.
     throwIfCancelled(signal);
     onProgress?.('Checking scc binary', 7);
-    await this.locClient.ensureSccAvailable((downloadPercent) => {
-      if (signal?.aborted) {
-        return;
-      }
-      const phase = `Downloading scc (${Math.round(downloadPercent)}%)`;
-      // Download progress maps to 7-12% of total progress
-      onProgress?.(phase, 7 + (downloadPercent * 0.05));
-    });
-    const sccInfo = await this.locClient.getSccInfo();
-    onProgress?.('scc ready', 12);
+    const sccReady = this.locClient
+      .ensureSccAvailable((downloadPercent) => {
+        if (signal?.aborted) {
+          return;
+        }
+        const phase = `Downloading scc (${Math.round(downloadPercent)}%)`;
+        // Download progress maps to 7-12% of total progress
+        onProgress?.(phase, 7 + (downloadPercent * 0.05));
+      })
+      .then(() => this.locClient.getSccInfo());
 
-    // Phase 3: Commit analytics backbone (shared by contributors/frequency/commit views)
-    throwIfCancelled(signal);
-    onProgress?.('Analyzing commit history', 15);
-    const commitAnalytics = await this.gitClient.getCommitAnalytics(
-      this.settings.maxCommitsToAnalyze,
-      this.settings.excludePatterns
-    );
-    onProgress?.('Commit history analyzed', 28);
+    onProgress?.('Analyzing history and counting lines of code', 15);
+    const [sccInfo, commitAnalytics, fileTree, fileModDates, allTrackedFiles] = await Promise.all([
+      sccReady,
+      this.gitClient.getCommitAnalytics(
+        this.settings.maxCommitsToAnalyze,
+        this.settings.excludePatterns
+      ),
+      sccReady.then(() =>
+        this.locClient.countLines(
+          this.settings.excludePatterns,
+          this.settings.locExcludedExtensions
+        )
+      ),
+      this.gitClient.getFileModificationDates(),
+      this.gitClient.getTrackedFiles(),
+    ]);
+    const contributors = buildContributorStatsFromCommitAnalytics(commitAnalytics);
+    const codeFrequency = buildCodeFrequencyFromCommitAnalytics(commitAnalytics);
+    onProgress?.('History and lines of code analyzed', 88);
 
-    // Phase 4: Contributor stats
-    throwIfCancelled(signal);
-    onProgress?.('Analyzing contributors', 30);
-    const contributors = await this.gitClient.getContributorStats(
-      this.settings.maxCommitsToAnalyze,
-      this.settings.excludePatterns
-    );
-    onProgress?.('Contributors analyzed', 45);
-
-    // Phase 5: Code frequency
-    throwIfCancelled(signal);
-    onProgress?.('Calculating code frequency', 48);
-    const codeFrequency = await this.gitClient.getCodeFrequency(
-      this.settings.maxCommitsToAnalyze,
-      this.settings.excludePatterns
-    );
-    onProgress?.('Code frequency calculated', 60);
-
-    // Phase 5: File tree with LOC
-    throwIfCancelled(signal);
-    onProgress?.('Counting lines of code', 65);
-    const fileTree = await this.locClient.countLines(
-      this.settings.excludePatterns,
-      this.settings.locExcludedExtensions
-    );
-    onProgress?.('Lines of code counted', 80);
-
-    // Phase 6: Get git file modification dates
-    throwIfCancelled(signal);
-    onProgress?.('Getting file history', 82);
-    const fileModDates = await this.gitClient.getFileModificationDates();
-    onProgress?.('File history loaded', 88);
-
-    // Phase 7: Get all tracked files and add binary files to tree
+    // Phase 3: Add binary files (tracked but not counted by scc) to tree
     throwIfCancelled(signal);
     onProgress?.('Scanning for binary files', 90);
     const shouldExcludePath = createPathPatternMatcher(this.settings.excludePatterns);
-    const trackedFiles = (await this.gitClient.getTrackedFiles()).filter(
+    const trackedFiles = allTrackedFiles.filter(
       (filePath) => !shouldExcludePath(filePath)
     );
     const codeFilePaths = this.collectFilePaths(fileTree);
@@ -165,7 +147,7 @@ export class AnalysisCoordinator {
     );
     onProgress?.('Binary files added', 93);
 
-    // Phase 8: Enrich tree with modification dates and file sizes
+    // Phase 4: Enrich tree with modification dates and file sizes
     throwIfCancelled(signal);
     onProgress?.('Enriching file data', 95);
     await this.enrichTreeWithMetadata(fileTree, fileModDates, signal);
@@ -212,7 +194,7 @@ export class AnalysisCoordinator {
       onCoreReady?.(coreResult);
     }
 
-    // Phase 9: HEAD-only blame metrics (line ownership + line age)
+    // Phase 5: HEAD-only blame metrics (line ownership + line age)
     throwIfCancelled(signal);
     onProgress?.('Analyzing line ownership and age', 98);
     const blameTargets = this.collectBlameTargets(fileTree);

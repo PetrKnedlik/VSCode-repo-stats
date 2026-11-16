@@ -291,54 +291,8 @@ export const useStore = create<StoreState>((set) => ({
 }));
 ```
 
-## Testing Webview Components
-
-### Basic Component Test
-```tsx
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { ContributorCard } from './ContributorCard';
-
-describe('ContributorCard', () => {
-  const mockContributor = {
-    name: 'John Doe',
-    email: 'john@example.com',
-    commits: 150,
-    linesAdded: 5000,
-    linesDeleted: 2000,
-  };
-
-  it('renders contributor name', () => {
-    render(<ContributorCard contributor={mockContributor} rank={1} />);
-    expect(screen.getByText('John Doe')).toBeInTheDocument();
-  });
-
-  it('displays commit count', () => {
-    render(<ContributorCard contributor={mockContributor} rank={1} />);
-    expect(screen.getByText('150')).toBeInTheDocument();
-  });
-});
-```
-
-### Mocking VSCode API in Tests
-```tsx
-// test/setup.ts
-import { vi } from 'vitest';
-
-const mockVsCode = {
-  postMessage: vi.fn(),
-  getState: vi.fn(() => ({})),
-  setState: vi.fn(),
-};
-
-(globalThis as any).acquireVsCodeApi = () => mockVsCode;
-
-export { mockVsCode };
-```
-
 ## Validation
 After implementing webview features:
 1. Build webview: `npm run build:webview`
-2. Run webview tests: `npm run test:unit`
-3. Visual verification in Extension Development Host
-4. Check no console errors in webview DevTools
+2. Visual verification in Extension Development Host
+3. Check no console errors in webview DevTools

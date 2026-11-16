@@ -23,11 +23,6 @@ interface ConfigurationInspectSeed<T> {
   workspaceFolderValue?: T;
 }
 
-export interface SettingsUpdateEntry {
-  key: string;
-  value: unknown;
-}
-
 function sorted(values: string[]): string[] {
   return [...values].sort((a, b) => a.localeCompare(b));
 }
@@ -182,47 +177,6 @@ export function applyScopedSettingUpdate<K extends RepoScopableSettingKey>(
   };
 }
 
-export function resetRepoScopedSettingOverride<K extends RepoScopableSettingKey>(
-  currentSettings: ExtensionSettings,
-  currentScopedSettings: RepoScopedSettings,
-  key: K
-): { settings: ExtensionSettings; scopedSettings: RepoScopedSettings } {
-  const nextEntry = {
-    ...currentScopedSettings[key],
-    repoValue: undefined,
-    source: resolveScopedSettingSource({
-      globalValue: currentScopedSettings[key].globalValue,
-    }),
-  };
-
-  const nextScopedSettings: RepoScopedSettings = {
-    ...currentScopedSettings,
-    [key]: nextEntry,
-  };
-
-  return {
-    settings: setScopedSettingValue(
-      currentSettings,
-      key,
-      getScopedSettingDisplayValue(nextScopedSettings, key, 'repo')
-    ),
-    scopedSettings: nextScopedSettings,
-  };
-}
-
-export function getScopedSettingSourceLabel(
-  source: ScopedSettingSource,
-  target: SettingWriteTarget
-): string {
-  if (source === 'repo') {
-    return 'Saved in Repo';
-  }
-  if (source === 'global') {
-    return target === 'repo' ? 'Inherited from Global' : 'Saved Globally';
-  }
-  return 'Using Default';
-}
-
 export function applySettingsPatch(
   currentSettings: ExtensionSettings,
   nextSettings: Partial<ExtensionSettings>
@@ -309,62 +263,4 @@ export function settingsAffectCommitMetadataAnalysis(
 ): boolean {
   return JSON.stringify(createCommitMetadataAnalysisSettingsSnapshot(currentSettings)) !==
     JSON.stringify(createCommitMetadataAnalysisSettingsSnapshot(nextSettings));
-}
-
-export function flattenSettingsUpdate(settings: Partial<ExtensionSettings>): SettingsUpdateEntry[] {
-  const updates: SettingsUpdateEntry[] = [];
-
-  if (settings.excludePatterns !== undefined) {
-    updates.push({ key: 'excludePatterns', value: settings.excludePatterns });
-  }
-  if (settings.maxCommitsToAnalyze !== undefined) {
-    updates.push({ key: 'maxCommitsToAnalyze', value: settings.maxCommitsToAnalyze });
-  }
-  if (settings.defaultColorMode !== undefined) {
-    updates.push({ key: 'defaultColorMode', value: settings.defaultColorMode });
-  }
-  if (settings.generatedPatterns !== undefined) {
-    updates.push({ key: 'generatedPatterns', value: settings.generatedPatterns });
-  }
-  if (settings.binaryExtensions !== undefined) {
-    updates.push({ key: 'binaryExtensions', value: settings.binaryExtensions });
-  }
-  if (settings.locExcludedExtensions !== undefined) {
-    updates.push({ key: 'locExcludedExtensions', value: settings.locExcludedExtensions });
-  }
-  if (settings.showEmptyTimePeriods !== undefined) {
-    updates.push({ key: 'showEmptyTimePeriods', value: settings.showEmptyTimePeriods });
-  }
-  if (settings.defaultGranularityMode !== undefined) {
-    updates.push({ key: 'defaultGranularityMode', value: settings.defaultGranularityMode });
-  }
-  if (settings.autoGranularityThreshold !== undefined) {
-    updates.push({ key: 'autoGranularityThreshold', value: settings.autoGranularityThreshold });
-  }
-  if (settings.overviewDisplayMode !== undefined) {
-    updates.push({ key: 'overviewDisplayMode', value: settings.overviewDisplayMode });
-  }
-  if (settings.tooltipSettings !== undefined) {
-    updates.push({ key: 'tooltipSettings', value: settings.tooltipSettings });
-  }
-  if (settings.treemap !== undefined) {
-    updates.push({ key: 'treemap.ageColorRangeMode', value: settings.treemap.ageColorRangeMode });
-    updates.push({ key: 'treemap.ageColorNewestDate', value: settings.treemap.ageColorNewestDate });
-    updates.push({ key: 'treemap.ageColorOldestDate', value: settings.treemap.ageColorOldestDate });
-  }
-  if (settings.evolution !== undefined) {
-    updates.push({ key: 'evolution.autoRun', value: settings.evolution.autoRun });
-    updates.push({ key: 'evolution.historyTraversalMode', value: settings.evolution.historyTraversalMode });
-    updates.push({ key: 'evolution.samplingMode', value: settings.evolution.samplingMode });
-    updates.push({ key: 'evolution.snapshotIntervalDays', value: settings.evolution.snapshotIntervalDays });
-    updates.push({ key: 'evolution.showInactivePeriods', value: settings.evolution.showInactivePeriods });
-    updates.push({ key: 'evolution.maxSnapshots', value: settings.evolution.maxSnapshots });
-    updates.push({ key: 'evolution.maxSeries', value: settings.evolution.maxSeries });
-    updates.push({ key: 'evolution.cohortFormat', value: settings.evolution.cohortFormat });
-  }
-  if (settings.commitMetadata !== undefined) {
-    updates.push({ key: 'commitMetadata', value: settings.commitMetadata });
-  }
-
-  return updates;
 }

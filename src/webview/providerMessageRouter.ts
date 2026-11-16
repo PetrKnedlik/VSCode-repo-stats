@@ -1,6 +1,5 @@
 import type * as vscode from 'vscode';
 import type {
-  ExtensionSettings,
   RepoScopableSettingKey,
   RepoScopableSettingValueMap,
   SettingWriteTarget,
@@ -34,13 +33,11 @@ interface ProviderMessageRouterDependencies {
   showPathCopiedMessage: () => void;
   showFileActionFailure: (action: 'open' | 'reveal' | 'copy', reason: ProviderFileActionFailureReason) => void;
   sendCurrentTargetContext: (webview: vscode.Webview) => Promise<unknown>;
-  updateSettings: (settings: Partial<ExtensionSettings>, target: SettingWriteTarget) => Promise<boolean>;
   updateScopedSetting: <K extends RepoScopableSettingKey>(
     key: K,
     value: RepoScopableSettingValueMap[K],
     target: SettingWriteTarget
   ) => Promise<boolean>;
-  resetScopedSettingOverride: (key: RepoScopableSettingKey) => Promise<boolean>;
   handlePostSettingsMutation: (webview: vscode.Webview, shouldPromptReanalysis: boolean) => Promise<void>;
 }
 
@@ -109,27 +106,12 @@ export class ProviderMessageRouter {
         await this.deps.sendCurrentTargetContext(webview);
         return;
 
-      case 'updateSettings': {
-        const shouldPromptReanalysis = await this.deps.updateSettings(
-          message.settings,
-          message.target ?? 'global'
-        );
-        await this.deps.handlePostSettingsMutation(webview, shouldPromptReanalysis);
-        return;
-      }
-
       case 'updateScopedSetting': {
         const shouldPromptReanalysis = await this.deps.updateScopedSetting(
           message.key,
           message.value,
           message.target
         );
-        await this.deps.handlePostSettingsMutation(webview, shouldPromptReanalysis);
-        return;
-      }
-
-      case 'resetScopedSetting': {
-        const shouldPromptReanalysis = await this.deps.resetScopedSettingOverride(message.key);
         await this.deps.handlePostSettingsMutation(webview, shouldPromptReanalysis);
         return;
       }

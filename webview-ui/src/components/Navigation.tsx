@@ -1,6 +1,6 @@
 /**
  * Navigation component for switching between views.
- * Main views are on the left, utility views (Settings, About) are on the right.
+ * Views collapse into an overflow menu when the panel is too narrow.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -12,9 +12,7 @@ interface ViewConfig {
   id: ViewType;
   label: string;
   icon: string;
-  iconKind?: 'emoji' | 'symbol';
   tone: 'neutral' | 'blue' | 'purple' | 'green' | 'orange' | 'pink';
-  tooltip?: string;
 }
 
 const MAIN_VIEWS: ViewConfig[] = [
@@ -27,17 +25,11 @@ const MAIN_VIEWS: ViewConfig[] = [
   { id: 'commits', label: 'Commits', icon: '✅', tone: 'green' },
 ];
 
-const UTILITY_VIEWS: ViewConfig[] = [
-  { id: 'about', label: 'About', icon: 'i', iconKind: 'symbol', tone: 'neutral', tooltip: 'About & Help' },
-  { id: 'settings', label: 'Settings', icon: '⚙', iconKind: 'symbol', tone: 'neutral', tooltip: 'Settings' },
-];
-
 const OVERFLOW_BUTTON_WIDTH = 54;
 
 function renderViewIcon(view: ViewConfig) {
-  const iconKind = view.iconKind ?? 'emoji';
   return (
-    <span className={`nav-badge-glyph nav-badge-glyph-${iconKind}`} aria-hidden="true">
+    <span className="nav-badge-glyph nav-badge-glyph-emoji" aria-hidden="true">
       {view.icon}
     </span>
   );
@@ -203,20 +195,6 @@ export function Navigation() {
         )}
       </div>
 
-      <div className="nav-utility">
-        {UTILITY_VIEWS.map((view) => (
-          <button
-            key={view.id}
-            className={`nav-button nav-icon-only ${activeView === view.id ? 'active' : ''}`}
-            onClick={() => handleSelectView(view.id)}
-            aria-current={activeView === view.id ? 'page' : undefined}
-            title={view.tooltip || view.label}
-            aria-label={view.label}
-          >
-            <span className={`nav-badge nav-badge-${view.tone}`} aria-hidden="true">{renderViewIcon(view)}</span>
-          </button>
-        ))}
-      </div>
 
       <div className="nav-measure" aria-hidden="true">
         {MAIN_VIEWS.map((view) => (

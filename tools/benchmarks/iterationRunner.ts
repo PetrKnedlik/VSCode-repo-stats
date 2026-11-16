@@ -42,24 +42,12 @@ class InstrumentedGitClient implements GitClient {
     return timeAsync(this.accumulator, 'getCommitAnalytics', () => this.inner.getCommitAnalytics(maxCommits, excludePatterns));
   }
 
-  getContributorStats(maxCommits: number, excludePatterns?: string[]) {
-    return timeAsync(this.accumulator, 'getContributorStats', () => this.inner.getContributorStats(maxCommits, excludePatterns));
-  }
-
-  getCodeFrequency(maxCommits: number, excludePatterns?: string[]) {
-    return timeAsync(this.accumulator, 'getCodeFrequency', () => this.inner.getCodeFrequency(maxCommits, excludePatterns));
-  }
-
   getFileModificationDates() {
     return timeAsync(this.accumulator, 'getFileModificationDates', () => this.inner.getFileModificationDates());
   }
 
   getTrackedFiles() {
     return timeAsync(this.accumulator, 'getTrackedFiles', () => this.inner.getTrackedFiles());
-  }
-
-  getSubmodulePaths() {
-    return timeAsync(this.accumulator, 'getSubmodulePaths', () => this.inner.getSubmodulePaths());
   }
 
   getHeadBlobShas(paths?: string[]) {

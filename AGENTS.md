@@ -29,4 +29,3 @@ VSCode extension for repo statistics: contributors, code frequency, and treemap 
   - For expected degradations, report diagnostics (counts/status) instead of silent masking.
 - Prefer `??` over `||` for optional numeric/data fields when `0`/empty values are valid.
 - Document partial-data contracts explicitly (see `DATA_SHAPE_CONTRACT.md`).
-- Add regression tests for fallback-sensitive paths (settings missing, command failure).

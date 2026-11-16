@@ -82,6 +82,4 @@ export type WebviewMessage =
   | { type: 'revealInExplorer'; path: string; repositoryId?: string }
   | { type: 'copyPath'; path: string; repositoryId?: string }
   | { type: 'getSettings' }
-  | { type: 'updateSettings'; settings: Partial<ExtensionSettings>; target?: SettingWriteTarget }
-  | ScopedSettingUpdateMessage
-  | { type: 'resetScopedSetting'; key: RepoScopableSettingKey };
+  | ScopedSettingUpdateMessage;

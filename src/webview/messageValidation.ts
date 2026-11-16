@@ -13,10 +13,6 @@ import { REPO_SCOPABLE_SETTING_KEYS } from '../types/index.js';
 const SETTING_WRITE_TARGETS = ['global', 'repo'] as const satisfies readonly SettingWriteTarget[];
 const EVOLUTION_SAMPLING_MODES = ['time', 'commit', 'auto'] as const satisfies readonly EvolutionSamplingMode[];
 const EVOLUTION_HISTORY_TRAVERSAL_MODES = ['firstParent', 'full'] as const satisfies readonly EvolutionHistoryTraversalMode[];
-const TREEMAP_COLOR_MODES = ['language', 'age', 'complexity', 'density'] as const;
-const GRANULARITY_MODES = ['auto', 'weekly', 'monthly'] as const;
-const OVERVIEW_DISPLAY_MODES = ['percent', 'count'] as const;
-const TREEMAP_AGE_RANGE_MODES = ['auto', 'custom'] as const;
 const COMMIT_METADATA_BUCKET_MODES = ['calendar', 'commitCount'] as const;
 const COMMIT_METADATA_CALENDAR_GRANULARITIES = ['day', 'week', 'month', 'quarter', 'year'] as const;
 const COMMIT_METADATA_BUCKET_STRATEGIES = ['fixedSize', 'equalBuckets'] as const;
@@ -54,48 +50,6 @@ function isRepoScopableSettingKey(value: unknown): value is RepoScopableSettingK
   return typeof value === 'string' && REPO_SCOPABLE_SETTING_KEYS.includes(value as RepoScopableSettingKey);
 }
 
-function isTooltipSettings(value: unknown): value is ExtensionSettings['tooltipSettings'] {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  return isBoolean(value.showLinesOfCode)
-    && isBoolean(value.showFileSize)
-    && isBoolean(value.showLanguage)
-    && isBoolean(value.showLastModified)
-    && isBoolean(value.showComplexity)
-    && isBoolean(value.showCommentLines)
-    && isBoolean(value.showCommentRatio)
-    && isBoolean(value.showBlankLines)
-    && isBoolean(value.showCodeDensity)
-    && isBoolean(value.showFileCount);
-}
-
-function isTreemapSettings(value: unknown): value is ExtensionSettings['treemap'] {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  return isEnumValue(value.ageColorRangeMode, TREEMAP_AGE_RANGE_MODES)
-    && typeof value.ageColorNewestDate === 'string'
-    && typeof value.ageColorOldestDate === 'string';
-}
-
-function isEvolutionSettings(value: unknown): value is ExtensionSettings['evolution'] {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  return isBoolean(value.autoRun)
-    && isEnumValue(value.historyTraversalMode, EVOLUTION_HISTORY_TRAVERSAL_MODES)
-    && isEnumValue(value.samplingMode, EVOLUTION_SAMPLING_MODES)
-    && isNumber(value.snapshotIntervalDays)
-    && isBoolean(value.showInactivePeriods)
-    && isNumber(value.maxSnapshots)
-    && isNumber(value.maxSeries)
-    && typeof value.cohortFormat === 'string';
-}
-
 function isCommitMetadataSettings(value: unknown): value is ExtensionSettings['commitMetadata'] {
   if (!isRecord(value)) {
     return false;
@@ -114,27 +68,6 @@ function isCommitMetadataSettings(value: unknown): value is ExtensionSettings['c
     && isBoolean(value.includeUncategorized)
     && isNumber(value.maxSeries)
     && isBoolean(value.includeOtherSeries);
-}
-
-function isPartialExtensionSettings(value: unknown): value is Partial<ExtensionSettings> {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  return (value.excludePatterns === undefined || isStringArray(value.excludePatterns))
-    && (value.maxCommitsToAnalyze === undefined || isNumber(value.maxCommitsToAnalyze))
-    && (value.defaultColorMode === undefined || isEnumValue(value.defaultColorMode, TREEMAP_COLOR_MODES))
-    && (value.generatedPatterns === undefined || isStringArray(value.generatedPatterns))
-    && (value.binaryExtensions === undefined || isStringArray(value.binaryExtensions))
-    && (value.locExcludedExtensions === undefined || isStringArray(value.locExcludedExtensions))
-    && (value.showEmptyTimePeriods === undefined || isBoolean(value.showEmptyTimePeriods))
-    && (value.defaultGranularityMode === undefined || isEnumValue(value.defaultGranularityMode, GRANULARITY_MODES))
-    && (value.autoGranularityThreshold === undefined || isNumber(value.autoGranularityThreshold))
-    && (value.overviewDisplayMode === undefined || isEnumValue(value.overviewDisplayMode, OVERVIEW_DISPLAY_MODES))
-    && (value.tooltipSettings === undefined || isTooltipSettings(value.tooltipSettings))
-    && (value.treemap === undefined || isTreemapSettings(value.treemap))
-    && (value.evolution === undefined || isEvolutionSettings(value.evolution))
-    && (value.commitMetadata === undefined || isCommitMetadataSettings(value.commitMetadata));
 }
 
 function isScopedSettingValue<K extends RepoScopableSettingKey>(
@@ -265,19 +198,6 @@ export function parseWebviewMessage(message: unknown): WebviewMessage {
       }
       return { type: 'copyPath', path: message.path, repositoryId: message.repositoryId };
 
-    case 'updateSettings':
-      if (!isPartialExtensionSettings(message.settings)) {
-        throw new Error('Received invalid settings payload from webview.');
-      }
-      if (message.target !== undefined && !isSettingWriteTarget(message.target)) {
-        throw new Error('Received invalid settings target from webview.');
-      }
-      return {
-        type: 'updateSettings',
-        settings: message.settings,
-        target: message.target,
-      };
-
     case 'updateScopedSetting':
       if (!isRepoScopableSettingKey(message.key)) {
         throw new Error('Received invalid scoped setting key from webview.');
@@ -289,12 +209,6 @@ export function parseWebviewMessage(message: unknown): WebviewMessage {
         throw new Error(`Received invalid value for scoped setting ${message.key}.`);
       }
       return createScopedSettingUpdateMessage(message.key, message.value, message.target);
-
-    case 'resetScopedSetting':
-      if (!isRepoScopableSettingKey(message.key)) {
-        throw new Error('Received invalid scoped setting key from webview.');
-      }
-      return { type: 'resetScopedSetting', key: message.key };
 
     default:
       throw new Error(`Received unknown webview message type: ${message.type}`);

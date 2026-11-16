@@ -1,6 +1,5 @@
 import { useCallback, useEffect } from 'react';
 import type {
-  ExtensionSettings,
   RepoScopableSettingKey,
   RepoScopableSettingValueMap,
   ScopedSettingUpdateMessage,
@@ -14,11 +13,7 @@ import {
   postVsCodeMessage,
   resetVsCodeApiForTests,
 } from './vscodeApiBridge';
-import {
-  applyOptimisticScopedSettingReset,
-  applyOptimisticScopedSettingUpdate,
-  applyOptimisticSettingsUpdate,
-} from './vscodeOptimisticSettings';
+import { applyOptimisticScopedSettingUpdate } from './vscodeOptimisticSettings';
 
 export { resetVsCodeApiForTests };
 
@@ -101,11 +96,6 @@ export function useVsCodeApi() {
     postVsCodeMessage({ type: 'updateRepositorySelection', repositoryIds });
   }, []);
 
-  const updateSettings = useCallback((settings: Partial<ExtensionSettings>) => {
-    applyOptimisticSettingsUpdate(settings);
-    postVsCodeMessage({ type: 'updateSettings', settings });
-  }, []);
-
   const updateScopedSetting = useCallback(
     <K extends RepoScopableSettingKey>(
       key: K,
@@ -118,11 +108,6 @@ export function useVsCodeApi() {
     []
   );
 
-  const resetScopedSetting = useCallback((key: RepoScopableSettingKey) => {
-    applyOptimisticScopedSettingReset(key);
-    postVsCodeMessage({ type: 'resetScopedSetting', key });
-  }, []);
-
   return {
     requestAnalysis,
     requestRefresh,
@@ -134,8 +119,6 @@ export function useVsCodeApi() {
     revealInExplorer,
     copyPath,
     updateRepositorySelection,
-    updateSettings,
     updateScopedSetting,
-    resetScopedSetting,
   };
 }

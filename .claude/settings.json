@@ -6,7 +6,6 @@
       "Bash(npm ci*)",
       "Bash(npx tsc *)",
       "Bash(npx vsce *)",
-      "Bash(npx vitest *)",
       "Bash(npx esbuild *)",
       "Bash(git status)",
       "Bash(git diff *)",

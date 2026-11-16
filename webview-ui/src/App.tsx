@@ -14,8 +14,6 @@ import { FilesPanel } from './components/files/FilesPanel';
 import { CodeFrequencyPanel } from './components/frequency/CodeFrequencyPanel';
 import { TreemapPanel } from './components/treemap/TreemapPanel';
 import { EvolutionPanel } from './components/evolution/EvolutionPanel';
-import { SettingsPanel } from './components/settings/SettingsPanel';
-import { AboutPanel } from './components/about/AboutPanel';
 import { LoadingState } from './components/common/LoadingState';
 import { ErrorState } from './components/common/ErrorState';
 import { EmptyState } from './components/common/EmptyState';
@@ -110,7 +108,7 @@ export function App() {
   } = useStore();
   const { requestRefresh, cancelAnalysis, updateRepositorySelection } = useVsCodeApi();
 
-  const isCoreView = activeView !== 'settings' && activeView !== 'about' && activeView !== 'evolution';
+  const isCoreView = activeView !== 'evolution';
   const hasRenderableCoreData = Boolean(settings && data);
   const showFirstRunLoading = Boolean(settings && !data && loading.isLoading);
   const showCoreStatusBar = isCoreView
@@ -257,9 +255,6 @@ export function App() {
       )}
 
       <main className="app-content">
-        {/* Settings and About views work regardless of data/loading state */}
-        {activeView === 'settings' && <SettingsPanel />}
-        {activeView === 'about' && <AboutPanel />}
 
         {/* Evolution is intentionally on-demand and independent from global analysis loading */}
         {activeView === 'evolution' && (
@@ -269,7 +264,7 @@ export function App() {
         )}
 
         {/* Core views depend on settings + global analysis */}
-        {activeView !== 'settings' && activeView !== 'about' && activeView !== 'evolution' && (
+        {activeView !== 'evolution' && (
           <>
             {error && !loading.isLoading && <ErrorState message={error} onRetry={requestRefresh} />}
             {!error && !settings && <LoadingState phase="Loading settings..." progress={0} />}

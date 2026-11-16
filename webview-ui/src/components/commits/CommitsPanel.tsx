@@ -34,7 +34,6 @@ export function CommitsPanel() {
     table,
   } = useCommitPanelState();
   const settings = useStore((state) => state.settings);
-  const setActiveView = useStore((state) => state.setActiveView);
   const [activeSection, setActiveSection] = useState<'explorer' | 'metadata'>('explorer');
   const [showInsights, setShowInsights] = useState(false);
   const [showColumnManager, setShowColumnManager] = useState(false);
@@ -203,7 +202,6 @@ export function CommitsPanel() {
           analytics={data.commitAnalytics}
           settings={settings.commitMetadata}
           rows={rows}
-          onOpenSettings={() => setActiveView('settings')}
         />
       )}
 

@@ -49,10 +49,11 @@ if (cleanOnly) {
 const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const outputFile = path.join(outputDir, `${pkg.name}-${pkg.version}.vsix`);
 
-const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+// Run vsce through node directly: Node 20.12+ refuses to spawn npx.cmd on Windows without a shell.
+const vsceBin = path.join(repoRoot, 'node_modules', '@vscode', 'vsce', 'vsce');
 const result = spawnSync(
-  npxCommand,
-  ['vsce', 'package', '--no-dependencies', '--out', outputFile],
+  process.execPath,
+  [vsceBin, 'package', '--no-dependencies', '--out', outputFile],
   {
     cwd: repoRoot,
     stdio: 'inherit',
@@ -60,6 +61,9 @@ const result = spawnSync(
   }
 );
 
+if (result.error) {
+  console.error(`Failed to run vsce: ${result.error.message}`);
+}
 if ((result.status ?? 1) !== 0) {
   process.exit(result.status ?? 1);
 }

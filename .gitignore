@@ -9,9 +9,6 @@ dist/
 # TypeScript
 *.tsbuildinfo
 
-# Test outputs
-coverage/
-.vscode-test/
 
 # OS files
 .DS_Store

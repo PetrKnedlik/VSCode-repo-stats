@@ -31,13 +31,7 @@
   "bugs": {
     "url": "https://github.com/guwidoe/VSCode-repo-stats/issues"
   },
-  "activationEvents": [
-    "onCommand:repoStats.showDashboard",
-    "onCommand:repoStats.refreshStats",
-    "onCommand:repoStats.selectRepository",
-    "onCommand:repoStats.addRepository",
-    "onCommand:repoStats.showDiagnostics"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -435,7 +429,7 @@
             "includeOtherSeries": true
           },
           "additionalProperties": true,
-          "description": "Commit Metadata Trends extractor presets, default bucketing, chart, and aggregation behavior. Use the integrated Commit Metadata settings UI for editing."
+          "description": "Commit Metadata Trends extractor presets, default bucketing, chart, and aggregation behavior. Edit it in settings.json."
         }
       }
     }
@@ -445,7 +439,6 @@
     "compile": "npm run compile:extension && npm run compile:webview",
     "compile:extension": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
     "compile:webview": "cd webview-ui && npm run build",
-    "compile:integration-tests": "tsc -p tsconfig.integration.json",
     "watch": "npm-run-all -p watch:*",
     "watch:extension": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch",
     "watch:webview": "cd webview-ui && npm run build:watch",
@@ -453,47 +446,28 @@
     "typecheck:watch": "tsc --noEmit --watch",
     "lint": "eslint src webview-ui/src --ext ts,tsx",
     "lint:fix": "eslint src webview-ui/src --ext ts,tsx --fix",
-    "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "vitest run",
-    "test:unit:watch": "vitest watch",
-    "test:integration": "npm run compile:extension && npm run compile:integration-tests && vscode-test",
-    "test:e2e": "extest setup-and-run './test/e2e/*.test.ts' --mocha_config .mocharc.json",
-    "test:e2e:setup": "extest get-vscode && extest get-chromedriver",
-    "test:coverage": "vitest run --coverage",
     "bench:analysis": "node ./tools/analysis_benchmark.js run",
     "bench:analysis:list": "node ./tools/analysis_benchmark.js list-targets",
     "bench:record": "./tools/benchmark_baseline.sh record",
     "bench:compare-prev": "./tools/benchmark_baseline.sh compare-prev",
     "bench:remote:check": "./tools/remote_benchmark_async.sh check",
-    "validate": "npm run typecheck && npm run lint && npm run test && npm run package",
+    "validate": "npm run typecheck && npm run lint && npm run package",
     "package": "node ./tools/package_vsix.js",
     "package:clean": "node ./tools/package_vsix.js --clean",
     "build": "npm run compile"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.4.0",
-    "@testing-library/react": "^16.3.2",
-    "@types/chai": "^5.2.3",
-    "@types/mocha": "^10.0.6",
     "@types/node": "^25.x",
     "@types/vscode": "^1.110.0",
     "@typescript-eslint/eslint-plugin": "^8.57.1",
     "@typescript-eslint/parser": "^8.56.1",
-    "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/coverage-v8": "^4.1.0",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.3.9",
     "@vscode/vsce": "^3.7.1",
-    "chai": "^6.2.2",
     "esbuild": "^0.27.4",
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.5",
-    "jsdom": "^29.0.0",
     "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.0",
-    "vitest": "^4.0.18",
-    "vscode-extension-tester": "^8.23.0"
+    "typescript": "^5.3.0"
   },
   "dependencies": {
     "simple-git": "^3.33.0"

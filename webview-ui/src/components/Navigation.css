@@ -9,14 +9,10 @@
   background: var(--vscode-editor-background);
 }
 
-.nav-main,
-.nav-utility {
+.nav-main {
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.nav-main {
   min-width: 0;
   flex: 1;
 }
@@ -72,10 +68,6 @@
   font-size: 15px;
 }
 
-.nav-badge-glyph-symbol {
-  font-size: 15px;
-  font-weight: 700;
-}
 
 .nav-badge-blue {
   background: color-mix(in srgb, var(--vscode-charts-blue, #4c9aff) 28%, transparent);

@@ -3,7 +3,7 @@
  */
 
 import { useDeferredValue, useMemo, useState } from 'react';
-import Plot from 'react-plotly.js';
+import Plot from '../common/Plot';
 import { useStore, selectCodeFrequencySeries } from '../../store';
 import { FrequencyGranularityToggle } from './FrequencyGranularityToggle';
 import { SummaryCard } from './SummaryCard';

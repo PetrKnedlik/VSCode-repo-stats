@@ -7,10 +7,7 @@ import type {
   SettingWriteTarget,
 } from '../types/index.js';
 import { buildScopedSettingValue } from './scopedSettings.js';
-import {
-  flattenSettingsUpdate,
-  settingsAffectCoreAnalysis,
-} from '../shared/settings.js';
+import { settingsAffectCoreAnalysis } from '../shared/settings.js';
 import type { RepositoryContext } from './context.js';
 import {
   getEnabledExcludePatterns,
@@ -18,22 +15,6 @@ import {
 } from './workspaceRepositoryScanner.js';
 
 export class RepositorySettingsService {
-  async updateSettings(
-    repository: RepositoryContext | undefined,
-    settings: Partial<ExtensionSettings>,
-    target: SettingWriteTarget
-  ): Promise<boolean> {
-    const config = this.getConfig(repository);
-    const configTarget = this.toConfigurationTarget(repository, target);
-    const previousSettings = this.getSettings(repository);
-
-    for (const update of flattenSettingsUpdate(settings)) {
-      await config.update(update.key, update.value, configTarget);
-    }
-
-    return settingsAffectCoreAnalysis(previousSettings, this.getSettings(repository));
-  }
-
   async updateScopedSetting<K extends RepoScopableSettingKey>(
     repository: RepositoryContext | undefined,
     key: K,
@@ -43,20 +24,6 @@ export class RepositorySettingsService {
     const config = this.getConfig(repository);
     const previousSettings = this.getSettings(repository);
     await config.update(key, value, this.toConfigurationTarget(repository, target));
-    return settingsAffectCoreAnalysis(previousSettings, this.getSettings(repository));
-  }
-
-  async resetScopedSettingOverride(
-    repository: RepositoryContext | undefined,
-    key: RepoScopableSettingKey
-  ): Promise<boolean> {
-    const config = this.getConfig(repository);
-    const previousSettings = this.getSettings(repository);
-    if (!repository?.workspaceFolder) {
-      throw new Error('Repo-scoped settings are only available for repositories inside the current workspace.');
-    }
-
-    await config.update(key, undefined, vscode.ConfigurationTarget.WorkspaceFolder);
     return settingsAffectCoreAnalysis(previousSettings, this.getSettings(repository));
   }
 

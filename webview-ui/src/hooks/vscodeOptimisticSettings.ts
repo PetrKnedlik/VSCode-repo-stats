@@ -8,7 +8,6 @@ import { useStore } from '../store';
 import { getOptimisticStalenessForSettingsChange } from './settingsStaleness';
 import {
   applyScopedSettingUpdate,
-  resetRepoScopedSettingOverride,
 } from '../utils/scopedSettings';
 
 function applyOptimisticSettingsPatch(
@@ -30,22 +29,6 @@ function applyOptimisticSettingsPatch(
   );
 }
 
-export function applyOptimisticSettingsUpdate(settings: Partial<ExtensionSettings>): void {
-  const state = useStore.getState();
-  const currentSettings = state.settings;
-  if (!currentSettings) {
-    return;
-  }
-
-  const nextSettings = {
-    ...currentSettings,
-    ...settings,
-  };
-
-  state.setSettings(nextSettings);
-  applyOptimisticSettingsPatch(currentSettings, settings);
-}
-
 export function applyOptimisticScopedSettingUpdate<K extends RepoScopableSettingKey>(
   key: K,
   value: RepoScopableSettingValueMap[K],
@@ -63,18 +46,6 @@ export function applyOptimisticScopedSettingUpdate<K extends RepoScopableSetting
     value,
     target
   );
-  state.setSettings(next.settings);
-  state.setScopedSettings(next.scopedSettings);
-  applyOptimisticSettingsPatch(state.settings, next.settings);
-}
-
-export function applyOptimisticScopedSettingReset(key: RepoScopableSettingKey): void {
-  const state = useStore.getState();
-  if (!state.settings || !state.scopedSettings) {
-    return;
-  }
-
-  const next = resetRepoScopedSettingOverride(state.settings, state.scopedSettings, key);
   state.setSettings(next.settings);
   state.setScopedSettings(next.scopedSettings);
   applyOptimisticSettingsPatch(state.settings, next.settings);
