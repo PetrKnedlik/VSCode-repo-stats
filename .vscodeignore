@@ -1,53 +1,9 @@
-# Ignore for VSCode extension packaging
+# Allowlist: exclude everything, then re-include only what the installed extension needs.
+**
 
-# Source files (we bundle everything)
-src/**
-!src/**/*.d.ts
-
-# Webview source and dev dependencies
-webview-ui/src/**
-webview-ui/node_modules/**
-webview-ui/tsconfig*.json
-webview-ui/vite.config.ts
-webview-ui/package.json
-webview-ui/package-lock.json
-
-# Keep webview dist
+!out/extension.js
 !webview-ui/dist/**
-
-# Development files
-.vscode/**
-.claude/**
-.pi/**
-.desloppify/**
-.git/**
-.gitignore
-node_modules/**
-.venv/**
-*.vsix
-tools/**
-
-# Config files
-eslint.config.mjs
-tsconfig.json
-
-# Documentation (excluded from package)
-docs/**
-Orchestration Setup Resources/**
-ARCHITECTURE.md
-ARCHITECTURE_DECISIONS.md
-TASK.md
-SPECIFICATIONS.md
-CLAUDE.md
-
-# Only include these in final package
-!out/**
-!webview-ui/dist/**
-!webview-ui/index.html
-!package.json
-!LICENSE.txt
-!README.md
-!CHANGELOG.md
-!LICENSE
-!images/**
+!images/icon.png
 !media/**
+!changelog.md
+!LICENSE

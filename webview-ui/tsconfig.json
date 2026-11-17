@@ -2,13 +2,21 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "paths": {
-      "@shared/*": ["../shared/*"],
-      "@analyzers/*": ["../src/analyzers/*"]
+      "@shared/*": [
+        "../shared/*"
+      ],
+      "@analyzers/*": [
+        "../src/analyzers/*"
+      ]
     },
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -18,9 +26,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "types": ["vite/client"]
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../shared/**/*.ts"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src",
+    "../shared/**/*.ts"
+  ]
 }

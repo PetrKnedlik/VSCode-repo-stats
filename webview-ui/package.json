@@ -2,13 +2,6 @@
   "name": "repo-stats-webview",
   "private": true,
   "version": "0.0.1",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "build:watch": "vite build --watch",
-    "preview": "vite preview"
-  },
   "dependencies": {
     "@tanstack/react-virtual": "^3.13.12",
     "d3-hierarchy": "^3.1.2",
@@ -23,9 +16,6 @@
     "@types/d3-hierarchy": "^3.1.6",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@types/react-plotly.js": "^2.6.0",
-    "@vitejs/plugin-react": "^4.2.0",
-    "typescript": "^6.0.3",
-    "vite": "^5.0.0"
+    "@types/react-plotly.js": "^2.6.0"
   }
 }

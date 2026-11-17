@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -7,29 +8,15 @@ export function getRepoStatsWebviewHtml(
   extensionUri: vscode.Uri
 ): string {
   const distPath = vscode.Uri.joinPath(extensionUri, 'webview-ui', 'dist');
-  const distFsPath = distPath.fsPath;
-  const indexPath = path.join(distFsPath, 'index.html');
-
-  if (!fs.existsSync(indexPath)) {
+  if (!fs.existsSync(path.join(distPath.fsPath, 'assets', 'index.js'))) {
     return createMissingBuildHtml();
   }
-
-  let html = fs.readFileSync(indexPath, 'utf-8');
 
   const scriptUri = webview.asWebviewUri(
     vscode.Uri.joinPath(distPath, 'assets', 'index.js')
   );
   const styleUri = webview.asWebviewUri(
     vscode.Uri.joinPath(distPath, 'assets', 'index.css')
-  );
-
-  html = html.replace(
-    /<link rel="stylesheet" crossorigin href="[./]*assets\/index\.css">/g,
-    `<link rel="stylesheet" href="${styleUri}">`
-  );
-  html = html.replace(
-    /<script type="module" crossorigin src="[./]*assets\/index\.js"><\/script>/g,
-    `<script type="module" src="${scriptUri}"></script>`
   );
 
   const nonce = getNonce();
@@ -41,16 +28,20 @@ export function getRepoStatsWebviewHtml(
     font-src ${webview.cspSource};
   `.replace(/\s+/g, ' ').trim();
 
-  html = html.replace(
-    '<head>',
-    `<head>\n    <meta http-equiv="Content-Security-Policy" content="${csp}">`
-  );
-  html = html.replace(
-    /<script/g,
-    `<script nonce="${nonce}"`
-  );
-
-  return html;
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Security-Policy" content="${csp}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repo Stats</title>
+    <script nonce="${nonce}" defer src="${scriptUri}"></script>
+    <link rel="stylesheet" href="${styleUri}">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`;
 }
 
 function createMissingBuildHtml(): string {
@@ -80,10 +71,5 @@ function createMissingBuildHtml(): string {
 }
 
 function getNonce(): string {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let index = 0; index < 32; index += 1) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
+  return crypto.randomBytes(16).toString('base64');
 }

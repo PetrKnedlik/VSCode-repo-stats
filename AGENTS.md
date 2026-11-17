@@ -6,7 +6,7 @@ VSCode extension for repo statistics: contributors, code frequency, and treemap 
 ## Stack
 
 - Extension: TypeScript, esbuild, simple-git, scc binary
-- Webview: React, Vite, D3.js, Plotly.js, Zustand
+- Webview: React, esbuild, D3.js, Plotly.js, Zustand
 
 ## Project Rules
 
