@@ -103,7 +103,8 @@ export function CommitsChart({ contributors, granularity }: Props) {
         },
       ]}
       layout={{
-        uirevision: 'contributor-commits', // keep user zoom across re-renders
+        // Category axis zooms by bar index, so reset zoom when the bar list changes.
+        uirevision: `${granularity}-${chartData.x[0]}-${chartData.x[chartData.x.length - 1]}`,
         autosize: true,
         height: 200,
         margin: { l: 40, r: 20, t: 10, b: 40 },

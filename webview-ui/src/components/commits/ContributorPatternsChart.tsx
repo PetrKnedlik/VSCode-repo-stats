@@ -63,7 +63,7 @@ export function ContributorPatternsChart({ contributors }: Props) {
           },
         ]}
         layout={{
-          uirevision: 'contributor-patterns', // keep user zoom across re-renders
+          uirevision: 'contributor-patterns',
           autosize: true,
           height: 320,
           margin: { l: 116, r: 24, t: 12, b: 44 },

@@ -30,7 +30,7 @@ export function EvolutionDistributionChart({ data }: Props) {
         },
       ]}
       layout={{
-        uirevision: 'distribution', // keep user zoom across re-renders
+        uirevision: 'distribution',
         autosize: true,
         height: 320,
         margin: { l: 60, r: 20, t: 20, b: 100 },

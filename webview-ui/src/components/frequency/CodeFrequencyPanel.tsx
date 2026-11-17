@@ -97,7 +97,8 @@ export function CodeFrequencyPanel() {
             },
           ]}
           layout={{
-            uirevision: 'code-frequency', // keep user zoom across re-renders
+            // Category axis zooms by bar index, so reset zoom when the bar list changes.
+            uirevision: `${deferredGranularity}-${visiblePoints[0]?.label}-${visiblePoints[visiblePoints.length - 1]?.label}`,
             autosize: true,
             height: 400,
             margin: { l: 60, r: 20, t: 20, b: 60 },

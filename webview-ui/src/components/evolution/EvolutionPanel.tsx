@@ -327,17 +327,17 @@ export function EvolutionPanel() {
       <div className="evolution-chart-grid">
         <section className="evolution-chart-card">
           <h3>Stacked Ownership Over Time</h3>
-          <EvolutionStackChart data={processed} normalize={normalize} axisMode={axisMode} />
+          <EvolutionStackChart key={dimension} data={processed} normalize={normalize} axisMode={axisMode} />
         </section>
 
         <section className="evolution-chart-card">
           <h3>Trend Lines</h3>
-          <EvolutionLineChart data={processed} normalize={normalize} axisMode={axisMode} />
+          <EvolutionLineChart key={dimension} data={processed} normalize={normalize} axisMode={axisMode} />
         </section>
 
         <section className="evolution-chart-card evolution-chart-card-full">
           <h3>Latest Distribution</h3>
-          <EvolutionDistributionChart data={processed} />
+          <EvolutionDistributionChart key={dimension} data={processed} />
         </section>
       </div>
     </div>
