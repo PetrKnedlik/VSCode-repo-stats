@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { AnalysisCallbacks } from '../coordinator.js';
-import { createAnalysisCoordinator } from '../coordinator.js';
+import { AnalysisCoordinator } from '../coordinator.js';
 import { mergeBlameMetrics } from '../merge/mergeBlameMetrics.js';
 import { mergeTargetFileTrees } from '../merge/mergeTrees.js';
 import {
@@ -23,21 +23,10 @@ export interface TargetAnalysisCoordinatorOptions {
   sccStoragePath: string;
   signal?: AbortSignal;
   previousBlameFileCaches?: Record<string, Record<string, BlameFileCacheEntry>>;
-  coordinatorFactory?: (
-    member: AnalysisTarget['members'][number],
-    settings: ExtensionSettings,
-    previousBlameFileCache: Record<string, BlameFileCacheEntry>
-  ) => TargetMemberCoordinator;
-}
-
-interface TargetMemberCoordinator {
-  analyze(callbacks?: AnalysisCallbacks): Promise<AnalysisResult>;
-  getLatestBlameFileCache(): Record<string, BlameFileCacheEntry>;
-  getRepositoryInfo(): Promise<{ branch: string; headSha: string }>;
 }
 
 export class TargetAnalysisCoordinator {
-  private readonly coordinators = new Map<string, TargetMemberCoordinator>();
+  private readonly coordinators = new Map<string, AnalysisCoordinator>();
   private readonly latestBlameFileCaches: Record<string, Record<string, BlameFileCacheEntry>> = {};
 
   constructor(private readonly options: TargetAnalysisCoordinatorOptions) {}
@@ -102,7 +91,7 @@ export class TargetAnalysisCoordinator {
 
     for (const member of this.options.target.members) {
       throwIfCancelled(this.options.signal);
-      const coordinator = this.coordinators.get(member.id) ?? createAnalysisCoordinator(
+      const coordinator = this.coordinators.get(member.id) ?? new AnalysisCoordinator(
         member.repoPath,
         this.options.settings,
         this.options.sccStoragePath,
@@ -119,7 +108,7 @@ export class TargetAnalysisCoordinator {
     return revisions;
   }
 
-  private createCoordinator(member: AnalysisTarget['members'][number]): TargetMemberCoordinator {
+  private createCoordinator(member: AnalysisTarget['members'][number]): AnalysisCoordinator {
     const memberSettings: ExtensionSettings = {
       ...this.options.settings,
       excludePatterns: [
@@ -128,11 +117,7 @@ export class TargetAnalysisCoordinator {
       ],
     };
 
-    const nextCoordinator = this.options.coordinatorFactory?.(
-      member,
-      memberSettings,
-      this.options.previousBlameFileCaches?.[member.id] ?? {}
-    ) ?? createAnalysisCoordinator(
+    const nextCoordinator = new AnalysisCoordinator(
       member.repoPath,
       memberSettings,
       this.options.sccStoragePath,

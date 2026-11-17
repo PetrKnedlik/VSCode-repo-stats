@@ -51,7 +51,6 @@ export type {
   EvolutionTimeSeriesData,
   ExtensionMessage,
   ExtensionSettings,
-  FileLOCEntry,
   RepoScopableSettingKey,
   RepoScopableSettingValueMap,
   RepoScopedSettings,

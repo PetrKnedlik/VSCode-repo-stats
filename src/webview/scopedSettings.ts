@@ -29,10 +29,3 @@ export function buildScopedSettingValue<K extends RepoScopableSettingKey>(
 }
 
 export { getScopedSettingDisplayValue };
-
-export type ScopedSettingDisplayValue = ReturnType<
-  typeof getScopedSettingDisplayValue<RepoScopableSettingKey>
->;
-
-export type ScopedSettingValueMap = RepoScopableSettingValueMap;
-export type ScopedSettings = RepoScopedSettings;

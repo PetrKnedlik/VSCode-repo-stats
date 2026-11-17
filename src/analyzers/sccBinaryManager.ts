@@ -315,11 +315,3 @@ export class SccBinaryManager {
     }
   }
 }
-
-// ============================================================================
-// Factory Function
-// ============================================================================
-
-export function createSccBinaryManager(storagePath: string): SccBinaryManager {
-  return new SccBinaryManager(storagePath);
-}

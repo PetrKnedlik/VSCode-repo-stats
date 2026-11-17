@@ -24,7 +24,7 @@ import { RepositoryService } from './repositoryService.js';
 import { RepositorySettingsService } from './settingsService.js';
 import { getRepoStatsWebviewHtml } from './webviewHtml.js';
 
-export class RepoStatsProvider implements vscode.WebviewViewProvider {
+export class RepoStatsProvider {
   public static readonly viewType = 'repoStats.dashboardView';
 
   private panel: vscode.WebviewPanel | undefined;
@@ -94,19 +94,6 @@ export class RepoStatsProvider implements vscode.WebviewViewProvider {
       handlePostSettingsMutation: (webview, shouldPromptReanalysis) =>
         this.contextSync.handlePostSettingsMutation(webview, shouldPromptReanalysis),
     });
-  }
-
-  resolveWebviewView(
-    webviewView: vscode.WebviewView,
-    _context: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken
-  ): void {
-    webviewView.webview.options = {
-      enableScripts: true,
-      localResourceRoots: [this.getWebviewDistRoot()],
-    };
-
-    webviewView.webview.html = this.getWebviewContent(webviewView.webview);
   }
 
   async showDashboard(): Promise<void> {

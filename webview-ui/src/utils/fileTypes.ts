@@ -30,21 +30,6 @@ export const BINARY_EXTENSIONS = new Set([
   '.icns',
 ]);
 
-// Non-code file types (config, data, documentation)
-// These are text-based but not "code" in the traditional sense
-export const NON_CODE_LANGUAGES = new Set([
-  'JSON',
-  'YAML',
-  'XML',
-  'TOML',
-  'Markdown',
-  'MDX',
-  'Plain Text',
-  'reStructuredText',
-  'AsciiDoc',
-  'Unknown',
-]);
-
 // Code languages (programming languages)
 export const CODE_LANGUAGES = new Set([
   'TypeScript', 'JavaScript', 'Python', 'Ruby', 'Go', 'Rust',

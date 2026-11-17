@@ -243,13 +243,6 @@ export function createEvolutionAnalysisSettingsSnapshot(settings: ExtensionSetti
   };
 }
 
-export function createCommitMetadataAnalysisSettingsSnapshot(settings: ExtensionSettings): object {
-  return {
-    maxCommitsToAnalyze: settings.maxCommitsToAnalyze,
-    commitMetadata: settings.commitMetadata,
-  };
-}
-
 export function settingsAffectCoreAnalysis(
   currentSettings: ExtensionSettings,
   nextSettings: ExtensionSettings
@@ -264,12 +257,4 @@ export function settingsAffectEvolutionAnalysis(
 ): boolean {
   return JSON.stringify(createEvolutionAnalysisSettingsSnapshot(currentSettings)) !==
     JSON.stringify(createEvolutionAnalysisSettingsSnapshot(nextSettings));
-}
-
-export function settingsAffectCommitMetadataAnalysis(
-  currentSettings: ExtensionSettings,
-  nextSettings: ExtensionSettings
-): boolean {
-  return JSON.stringify(createCommitMetadataAnalysisSettingsSnapshot(currentSettings)) !==
-    JSON.stringify(createCommitMetadataAnalysisSettingsSnapshot(nextSettings));
 }

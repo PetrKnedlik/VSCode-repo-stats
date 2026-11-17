@@ -1,6 +1,7 @@
 import { useEvolutionPanelState } from './useEvolutionPanelState';
 import type { EvolutionProgressStage } from '../../types';
 import { EvolutionControls } from './EvolutionControls';
+import { EvolutionRangeSelect } from './EvolutionRangeSelect';
 import { EvolutionStackChart } from './EvolutionStackChart';
 import { EvolutionLineChart } from './EvolutionLineChart';
 import { EvolutionDistributionChart } from './EvolutionDistributionChart';
@@ -173,7 +174,11 @@ export function EvolutionPanel() {
           message="This view uses blame-based historical snapshots and can be slower on very large repositories. Run it when you need deep ownership history insights."
           actionLabel="Run Evolution Analysis"
           onAction={requestEvolutionRefresh}
-        />
+        >
+          <div className="evolution-state-range">
+            <EvolutionRangeSelect historyMonths={historyMonths} onHistoryMonthsChange={setHistoryMonths} />
+          </div>
+        </EvolutionStateView>
       </div>
     );
   }

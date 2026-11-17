@@ -19,25 +19,16 @@ import { buildCommitAnalytics, parseCommitHistoryLog } from './commitAnalytics.j
 // Interfaces for Dependency Injection
 // ============================================================================
 
-/**
- * Only getRepoInfo() validates that the path is a git repository; callers must
- * call it first (the coordinator does) to avoid a git spawn per method.
- */
-export interface GitClient {
-  isRepo(): Promise<boolean>;
-  getRepoInfo(): Promise<RepositoryInfo>;
-  getCommitAnalytics(maxCommits: number, excludePatterns?: string[]): Promise<CommitAnalytics>;
-  getFileModificationDates(): Promise<Map<string, string>>;
-  getTrackedFiles(): Promise<string[]>;
-  getHeadBlobShas(paths?: string[]): Promise<Map<string, string>>;
-  raw(args: string[]): Promise<string>;
-}
 
 // ============================================================================
 // Git Analyzer Implementation
 // ============================================================================
 
-export class GitAnalyzer implements GitClient {
+/**
+ * Only getRepoInfo() validates that the path is a git repository; callers must
+ * call it first (the coordinator does) to avoid a git spawn per method.
+ */
+export class GitAnalyzer {
   private git: SimpleGit;
   private repoPath: string;
 
@@ -244,12 +235,4 @@ export class GitAnalyzer implements GitClient {
 
     return name;
   }
-}
-
-// ============================================================================
-// Factory Function for Dependency Injection
-// ============================================================================
-
-export function createGitAnalyzer(repoPath: string): GitClient {
-  return new GitAnalyzer(repoPath);
 }

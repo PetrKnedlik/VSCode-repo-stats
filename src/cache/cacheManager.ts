@@ -8,7 +8,6 @@ import {
   BlameFileCacheEntry,
   CacheStructure,
   AnalysisResult,
-  TreemapNode,
 } from '../types/index.js';
 
 const CACHE_VERSION = '2.0.0';
@@ -64,7 +63,6 @@ export class CacheManager {
       lastAnalyzed: Date.now(),
       data: result,
       blameFileCaches,
-      fileLOC: this.buildFileLOCMap(result.fileTree),
     };
 
     await this.storage.set(this.keyPrefix, cache);
@@ -74,14 +72,6 @@ export class CacheManager {
     await this.storage.set(this.keyPrefix, undefined);
   }
 
-  getLastAnalyzed(): Date | null {
-    const cache = this.getCache();
-    if (!cache) {
-      return null;
-    }
-    return new Date(cache.lastAnalyzed);
-  }
-
   private getCache(): CacheStructure | null {
     const cached = this.storage.get<CacheStructure>(this.keyPrefix);
     return cached ?? null;
@@ -89,40 +79,5 @@ export class CacheManager {
 
   private hashId(value: string): string {
     return crypto.createHash('md5').update(value).digest('hex').slice(0, 8);
-  }
-
-  private buildFileLOCMap(
-    node: TreemapNode,
-    map: Record<string, { sha: string; lines: number; language: string }> = {}
-  ): Record<string, { sha: string; lines: number; language: string }> {
-    if (node.type === 'file') {
-      map[node.path] = {
-        sha: '',
-        lines: node.lines ?? 0,
-        language: node.language ?? 'Unknown',
-      };
-    }
-
-    for (const child of node.children ?? []) {
-      this.buildFileLOCMap(child, map);
-    }
-
-    return map;
-  }
-}
-
-export class InMemoryCacheStorage implements CacheStorage {
-  private readonly store = new Map<string, unknown>();
-
-  get<T>(key: string): T | undefined {
-    return this.store.get(key) as T | undefined;
-  }
-
-  async set<T>(key: string, value: T): Promise<void> {
-    if (value === undefined) {
-      this.store.delete(key);
-    } else {
-      this.store.set(key, value);
-    }
   }
 }

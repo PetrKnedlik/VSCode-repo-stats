@@ -262,12 +262,6 @@ export interface AnalysisResult {
   diagnostics?: AnalysisDiagnostics;
 }
 
-export interface FileLOCEntry {
-  sha: string;
-  lines: number;
-  language: string;
-}
-
 export interface CacheStructure {
   version: string;
   targetId: string;
@@ -276,5 +270,4 @@ export interface CacheStructure {
   lastAnalyzed: number;
   data: AnalysisResult;
   blameFileCaches: Record<string, Record<string, BlameFileCacheEntry>>;
-  fileLOC: Record<string, FileLOCEntry>;
 }

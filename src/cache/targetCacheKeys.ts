@@ -1,10 +1,6 @@
 import * as crypto from 'crypto';
 import type { AnalysisTarget, EvolutionTargetHead } from '../types/index.js';
 
-export function createTargetCacheKey(targetId: string): string {
-  return crypto.createHash('md5').update(targetId).digest('hex').slice(0, 12);
-}
-
 export function createTargetRevisionHash(
   target: AnalysisTarget,
   revisions: Array<{ repositoryId: string; branch: string; headSha: string }>

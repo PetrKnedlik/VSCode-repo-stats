@@ -14,14 +14,13 @@ import {
   ExtensionSettings,
 } from '../types/index.js';
 import { analyzeHeadBlameMetrics, createEmptyBlameMetrics } from './blameMetrics.js';
-import { GitClient, createGitAnalyzer } from './gitAnalyzer.js';
+import { GitAnalyzer } from './gitAnalyzer.js';
 import {
   buildCodeFrequencyFromCommitAnalytics,
   buildContributorStatsFromCommitAnalytics,
 } from './commitAnalytics.js';
 import {
-  LOCClient,
-  createLOCCounter,
+  LOCCounter,
   normalizeExtensionForFilter,
   shouldExcludeFileByExtension,
 } from './locCounter.js';
@@ -56,8 +55,8 @@ export interface AnalysisCallbacks {
 // ============================================================================
 
 export class AnalysisCoordinator {
-  private gitClient: GitClient;
-  private locClient: LOCClient;
+  private gitClient: GitAnalyzer;
+  private locClient: LOCCounter;
   private settings: ExtensionSettings;
   private repoPath: string;
   private previousBlameFileCache: Record<string, BlameFileCacheEntry>;
@@ -67,14 +66,12 @@ export class AnalysisCoordinator {
     repoPath: string,
     settings: ExtensionSettings,
     sccStoragePath: string,
-    gitClient?: GitClient,
-    locClient?: LOCClient,
     previousBlameFileCache: Record<string, BlameFileCacheEntry> = {}
   ) {
     this.repoPath = repoPath;
     this.settings = settings;
-    this.gitClient = gitClient || createGitAnalyzer(repoPath);
-    this.locClient = locClient || createLOCCounter(repoPath, sccStoragePath);
+    this.gitClient = new GitAnalyzer(repoPath);
+    this.locClient = new LOCCounter(repoPath, sccStoragePath);
     this.previousBlameFileCache = previousBlameFileCache;
     this.latestBlameFileCache = {};
   }
@@ -519,24 +516,4 @@ export class AnalysisCoordinator {
   getLatestBlameFileCache(): Record<string, BlameFileCacheEntry> {
     return this.latestBlameFileCache;
   }
-}
-
-// ============================================================================
-// Factory Function
-// ============================================================================
-
-export function createAnalysisCoordinator(
-  repoPath: string,
-  settings: ExtensionSettings,
-  sccStoragePath: string,
-  previousBlameFileCache: Record<string, BlameFileCacheEntry> = {}
-): AnalysisCoordinator {
-  return new AnalysisCoordinator(
-    repoPath,
-    settings,
-    sccStoragePath,
-    undefined,
-    undefined,
-    previousBlameFileCache
-  );
 }

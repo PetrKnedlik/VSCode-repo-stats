@@ -22,7 +22,6 @@ import { AnalyzerExecutionError, TreemapNode } from '../types/index.js';
 import {
   SccBinaryManager,
   SccInfo,
-  createSccBinaryManager,
 } from './sccBinaryManager.js';
 import {
   createPathPatternMatcher,
@@ -40,19 +39,6 @@ type UnknownRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null;
-}
-
-// ============================================================================
-// Interfaces for Dependency Injection
-// ============================================================================
-
-export interface LOCClient {
-  countLines(
-    excludePatterns: string[],
-    locExcludedExtensions?: string[]
-  ): Promise<TreemapNode>;
-  ensureSccAvailable(onProgress?: (percent: number) => void): Promise<void>;
-  getSccInfo(): Promise<SccInfo>;
 }
 
 // ============================================================================
@@ -256,14 +242,14 @@ export function parseSccLanguageGroups(stdout: string): SccLanguageGroup[] {
 // LOC Counter Implementation
 // ============================================================================
 
-export class LOCCounter implements LOCClient {
+export class LOCCounter {
   private repoPath: string;
   private binaryManager: SccBinaryManager;
   private sccPath: string | null = null;
 
   constructor(repoPath: string, storagePath: string) {
     this.repoPath = repoPath;
-    this.binaryManager = createSccBinaryManager(storagePath);
+    this.binaryManager = new SccBinaryManager(storagePath);
   }
 
   /**
@@ -503,15 +489,4 @@ interface DirectoryMetrics {
   blankLines: number;
   fileCount: number;
   maxComplexity: number;
-}
-
-// ============================================================================
-// Factory Function for Dependency Injection
-// ============================================================================
-
-export function createLOCCounter(
-  repoPath: string,
-  storagePath: string
-): LOCClient {
-  return new LOCCounter(repoPath, storagePath);
 }

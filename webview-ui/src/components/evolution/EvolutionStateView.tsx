@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 interface Props {
   title: string;
   message: string;
@@ -11,6 +13,7 @@ interface Props {
   repositoryLabel?: string;
   snapshotLabel?: string;
   etaLabel?: string;
+  children?: ReactNode;
 }
 
 export function EvolutionStateView({
@@ -26,6 +29,7 @@ export function EvolutionStateView({
   repositoryLabel,
   snapshotLabel,
   etaLabel,
+  children,
 }: Props) {
   const details = [
     stageLabel ? { label: 'Stage', value: stageLabel } : null,
@@ -53,6 +57,7 @@ export function EvolutionStateView({
           <div className="evolution-progress-fill" style={{ width: `${Math.max(0, Math.min(100, progress))}%` }} />
         </div>
       )}
+      {children}
       {(actionLabel && onAction) || (secondaryActionLabel && onSecondaryAction) ? (
         <div className="evolution-state-actions">
           {actionLabel && onAction && (

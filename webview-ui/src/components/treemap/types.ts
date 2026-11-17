@@ -39,9 +39,3 @@ export interface ContextMenuState {
   y: number
   node: TreemapNode | null
 }
-
-export interface TreemapDimensions {
-  width: number
-  height: number
-  devicePixelRatio: number
-}

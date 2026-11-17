@@ -43,18 +43,3 @@ export function buildRepositoryOption(
     relativePath: getRepositoryRelativePath(input.repoPath, input.workspaceFolderPath),
   };
 }
-
-export function selectPreferredRepositoryPath(
-  repositories: Pick<RepositoryOption, 'path'>[],
-  preferredPath?: string
-): string | null {
-  if (repositories.length === 0) {
-    return null;
-  }
-
-  if (preferredPath && repositories.some((repository) => repository.path === preferredPath)) {
-    return preferredPath;
-  }
-
-  return repositories[0]?.path ?? null;
-}

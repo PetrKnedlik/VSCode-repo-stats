@@ -13,7 +13,3 @@ export function throwIfCancelled(signal?: AbortSignal, message?: string): void {
     throw new AnalysisCancelledError(reason ?? 'Analysis was cancelled.');
   }
 }
-
-export function isAnalysisCancelledError(error: unknown): error is AnalysisCancelledError {
-  return error instanceof AnalysisCancelledError;
-}

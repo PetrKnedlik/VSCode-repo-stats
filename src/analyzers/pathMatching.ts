@@ -137,20 +137,6 @@ function matchesParsedPattern(normalizedPath: string, pattern: ParsedPattern): b
   );
 }
 
-export function matchesPathPattern(filePath: string, pattern: string): boolean {
-  const parsedPattern = parsePattern(pattern);
-  if (!parsedPattern) {
-    return false;
-  }
-
-  const normalizedPath = normalizeValue(filePath);
-  if (!normalizedPath) {
-    return false;
-  }
-
-  return matchesParsedPattern(normalizedPath, parsedPattern);
-}
-
 export function createPathPatternMatcher(patterns: string[]): (filePath: string) => boolean {
   const parsedPatterns = patterns
     .map((pattern) => parsePattern(pattern))
