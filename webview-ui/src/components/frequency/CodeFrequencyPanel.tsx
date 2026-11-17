@@ -97,6 +97,7 @@ export function CodeFrequencyPanel() {
             },
           ]}
           layout={{
+            uirevision: 'code-frequency', // keep user zoom across re-renders
             autosize: true,
             height: 400,
             margin: { l: 60, r: 20, t: 20, b: 60 },

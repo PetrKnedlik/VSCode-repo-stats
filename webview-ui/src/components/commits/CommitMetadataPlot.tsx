@@ -94,6 +94,7 @@ export function CommitMetadataPlot({ result, metric, chartType, bucketMode, onSe
       <Plot
         data={buildPlotData(result, metric, chartType, seriesValues, colorByValue)}
         layout={{
+          uirevision: `${metric}-${chartType}-${bucketMode}`, // keep user zoom across re-renders
           autosize: true,
           height: getChartHeight(result.buckets.length, seriesValues.length, chartType),
           margin: { l: chartType === 'heatmap' ? 120 : 58, r: 24, t: 18, b: 78 },

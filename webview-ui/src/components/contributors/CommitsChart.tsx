@@ -103,6 +103,7 @@ export function CommitsChart({ contributors, granularity }: Props) {
         },
       ]}
       layout={{
+        uirevision: 'contributor-commits', // keep user zoom across re-renders
         autosize: true,
         height: 200,
         margin: { l: 40, r: 20, t: 10, b: 40 },

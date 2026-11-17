@@ -33,6 +33,7 @@ export function CommitDistributionChart({ title, buckets, color, valueLabel }: P
           },
         ]}
         layout={{
+          uirevision: title, // keep user zoom across re-renders
           autosize: true,
           height: 290,
           margin: { l: 48, r: 12, t: 12, b: 72 },

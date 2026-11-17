@@ -34,6 +34,8 @@ export function EvolutionStackChart({ data, normalize, axisMode = 'time' }: Prop
         hovertemplate: `<b>${label}</b><br>%{customdata}<br>Value %{y:.2f}<extra></extra>`,
       }))}
       layout={{
+        // Keep user zoom across re-renders; reset only when the axes change meaning.
+        uirevision: `${axisMode}-${normalize}`,
         autosize: true,
         height: 320,
         margin: { l: 60, r: 20, t: 20, b: 80 },

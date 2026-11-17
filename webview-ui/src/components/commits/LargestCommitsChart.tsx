@@ -63,6 +63,7 @@ export function LargestCommitsChart({ rows }: Props) {
           },
         ]}
         layout={{
+          uirevision: 'largest-commits', // keep user zoom across re-renders
           autosize: true,
           height: 320,
           margin: { l: 180, r: 24, t: 12, b: 44 },
