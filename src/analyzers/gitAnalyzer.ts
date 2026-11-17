@@ -3,6 +3,7 @@
  * This module has NO VSCode dependencies and is fully testable.
  */
 
+import * as path from 'path';
 import { simpleGit, type SimpleGit } from 'simple-git';
 import {
   CommitAnalytics,
@@ -41,7 +42,7 @@ export class GitAnalyzer implements GitClient {
 
   constructor(repoPath: string) {
     this.repoPath = repoPath;
-    this.git = simpleGit(repoPath);
+    this.git = simpleGit(repoPath, { config: ['core.quotePath=false'] });
   }
 
   async isRepo(): Promise<boolean> {
@@ -91,7 +92,7 @@ export class GitAnalyzer implements GitClient {
       'HEAD',
       `--max-count=${maxCommits}`,
       '--no-renames',
-      '--format=__COMMIT__|%H|%an|%ae|%aI|%s',
+      '--format=__COMMIT__%x1f%H%x1f%an%x1f%ae%x1f%aI%x1f%s',
       '--numstat',
     ]);
 
@@ -204,7 +205,7 @@ export class GitAnalyzer implements GitClient {
   }
 
   private getRepositoryName(): string {
-    const name = this.repoPath.split('/').pop()?.trim() ?? '';
+    const name = path.basename(this.repoPath).trim();
     if (!name) {
       throw new Error(`Cannot derive repository name from path: "${this.repoPath}"`);
     }

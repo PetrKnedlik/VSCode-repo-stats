@@ -55,7 +55,7 @@ export function parseCommitHistoryLog(
       continue;
     }
 
-    if (trimmed.startsWith('__COMMIT__|')) {
+    if (trimmed.startsWith('__COMMIT__\x1f')) {
       pushCurrent();
       current = createParsedCommit(trimmed);
       continue;
@@ -147,7 +147,7 @@ export function buildCommitAnalytics(
 export function buildContributorStatsFromCommitAnalytics(
   analytics: CommitAnalytics
 ): ContributorStats[] {
-  const contributorMap = new Map<number, ContributorStats & { weeklyMap: Map<string, WeeklyCommit> }>();
+  const contributorMap = new Map<number, ContributorStats & { weeklyMap: Map<string, WeeklyCommit>; firstTimestamp: number; lastTimestamp: number }>();
 
   for (const record of analytics.records) {
     let contributor = contributorMap.get(record.authorId);
@@ -160,6 +160,8 @@ export function buildContributorStatsFromCommitAnalytics(
         linesDeleted: 0,
         firstCommit: record.committedAt,
         lastCommit: record.committedAt,
+        firstTimestamp: record.timestamp,
+        lastTimestamp: record.timestamp,
         weeklyActivity: [],
         weeklyMap: new Map<string, WeeklyCommit>(),
       };
@@ -170,10 +172,12 @@ export function buildContributorStatsFromCommitAnalytics(
     contributor.linesAdded += record.additions;
     contributor.linesDeleted += record.deletions;
 
-    if (record.committedAt < contributor.firstCommit) {
+    if (record.timestamp < contributor.firstTimestamp) {
+      contributor.firstTimestamp = record.timestamp;
       contributor.firstCommit = record.committedAt;
     }
-    if (record.committedAt > contributor.lastCommit) {
+    if (record.timestamp > contributor.lastTimestamp) {
+      contributor.lastTimestamp = record.timestamp;
       contributor.lastCommit = record.committedAt;
     }
 
@@ -282,12 +286,12 @@ export function buildCodeFrequencyFromCommitAnalytics(
 }
 
 function createParsedCommit(line: string): ParsedCommitHistoryEntry {
-  const parts = line.split('|');
+  const parts = line.split('\x1f');
   const sha = parts[1] ?? '';
   const name = parts[2] ?? UNKNOWN_AUTHOR;
   const email = parts[3] ?? UNKNOWN_EMAIL;
   const date = parts[4] ?? '';
-  const summary = parts.slice(5).join('|');
+  const summary = parts.slice(5).join('\x1f');
   const timestamp = Date.parse(date);
 
   return {

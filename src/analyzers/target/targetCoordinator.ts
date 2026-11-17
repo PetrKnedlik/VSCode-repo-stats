@@ -165,14 +165,14 @@ export class TargetAnalysisCoordinator {
   private aggregateMemberResults(memberResults: AnalysisResult[]): AnalysisResult {
     const commitAnalytics = mergeCommitAnalytics(memberResults.map((result) => result.commitAnalytics));
     const repositories = memberResults.flatMap((result) => result.repositories);
-    const limitedRepositories = repositories
-      .filter((_, index) => memberResults[index]?.limitReached)
-      .map((repository, index) => ({
+    const limitedRepositories = memberResults
+      .filter((result) => result.limitReached)
+      .flatMap((result) => result.repositories.map((repository) => ({
         repositoryId: repository.id,
         repositoryName: repository.name,
-        analyzedCommitCount: memberResults[index]?.analyzedCommitCount ?? 0,
+        analyzedCommitCount: result.analyzedCommitCount,
         commitCount: repository.commitCount,
-      }));
+      })));
 
     return {
       target: {

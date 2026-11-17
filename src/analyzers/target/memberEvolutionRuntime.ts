@@ -60,7 +60,7 @@ export class MemberEvolutionRuntime {
     readonly settings: ExtensionSettings,
     private readonly signal?: AbortSignal
   ) {
-    this.git = simpleGit(member.repoPath);
+    this.git = simpleGit(member.repoPath, { config: ['core.quotePath=false'] });
     this.shouldExcludePath = createPathPatternMatcher([
       ...settings.excludePatterns,
       ...(member.excludePatterns ?? []),
