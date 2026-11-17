@@ -347,6 +347,20 @@
           "maximum": 500,
           "description": "Target number of historical snapshots analyzed in Evolution. Commit and auto modes distribute snapshots across history to match this target; time mode uses it as a cap."
         },
+        "repoStats.evolution.historyMonths": {
+          "type": "number",
+          "scope": "resource",
+          "default": 0,
+          "minimum": 0,
+          "description": "Limit Evolution to the last N months of history (0 = all history). Snapshots are spread only across that range, so it is also faster."
+        },
+        "repoStats.evolution.maxFilesPerSnapshot": {
+          "type": "number",
+          "scope": "resource",
+          "default": 500,
+          "minimum": 1,
+          "description": "Maximum number of changed files blamed per Evolution snapshot. Files over the limit are skipped and counted in the run diagnostics; raise it for accurate totals on large repositories at the cost of speed."
+        },
         "repoStats.evolution.maxSeries": {
           "type": "number",
           "scope": "resource",

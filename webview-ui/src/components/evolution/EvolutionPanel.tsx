@@ -99,6 +99,8 @@ export function EvolutionPanel() {
     setShowInactivePeriods,
     maxSeries,
     setMaxSeries,
+    historyMonths,
+    setHistoryMonths,
     processed,
     timeline,
     runLabel,
@@ -201,6 +203,16 @@ export function EvolutionPanel() {
         </div>
       )}
 
+      {(evolutionData.diagnostics?.skippedBlameFiles ?? 0) > 0 && (
+        <div className="limit-warning">
+          <span className="warning-icon">&#9888;</span>
+          <span className="warning-text">
+            <strong>Partial data:</strong> {evolutionData.diagnostics?.skippedBlameFiles.toLocaleString()} changed files
+            were skipped. Increase <code>repoStats.evolution.maxFilesPerSnapshot</code> for complete totals.
+          </span>
+        </div>
+      )}
+
       {showProvisionalBanner && (
         <div className="evolution-progress-banner" role="status" aria-live="polite">
           <div className="evolution-progress-banner-header">
@@ -278,6 +290,8 @@ export function EvolutionPanel() {
         onShowInactivePeriodsChange={setShowInactivePeriods}
         maxSeries={maxSeries}
         onMaxSeriesChange={setMaxSeries}
+        historyMonths={historyMonths}
+        onHistoryMonthsChange={setHistoryMonths}
         onRun={requestEvolutionRefresh}
         runLabel={runLabel}
       />

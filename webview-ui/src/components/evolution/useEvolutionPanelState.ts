@@ -12,10 +12,12 @@ export function useEvolutionPanelState() {
   const evolutionPresentation = useStore((state) => state.evolutionPresentation);
   const settings = useStore((state) => state.settings);
   const data = useStore((state) => state.data);
+  const scopedSettings = useStore((state) => state.scopedSettings);
   const {
     requestEvolutionAnalysis,
     requestEvolutionRefresh,
     cancelEvolutionAnalysis,
+    updateScopedSetting,
   } = useVsCodeApi();
 
   const [dimension, setDimension] = useState<EvolutionDimension>('cohort');
@@ -96,6 +98,13 @@ export function useEvolutionPanelState() {
     setShowInactivePeriods,
     maxSeries,
     setMaxSeries,
+    historyMonths: settings?.evolution.historyMonths ?? 0,
+    // Write where the effective value lives, so a repo override isn't silently shadowing a global write.
+    setHistoryMonths: (months: number) => updateScopedSetting(
+      'evolution.historyMonths',
+      months,
+      scopedSettings?.['evolution.historyMonths'].repoValue !== undefined ? 'repo' : 'global'
+    ),
     processed,
     timeline,
     runLabel: evolutionStatus === 'stale' ? 'Recompute Evolution' : 'Run Evolution Analysis',

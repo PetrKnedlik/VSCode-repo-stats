@@ -32,6 +32,7 @@ export interface EvolutionTimeSeriesData {
 
 export interface EvolutionDiagnostics {
   expectedBlameMisses: number;
+  skippedBlameFiles: number;
 }
 
 export interface EvolutionTargetHead {

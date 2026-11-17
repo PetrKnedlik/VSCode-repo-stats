@@ -83,6 +83,7 @@ function isScopedSettingValue<K extends RepoScopableSettingKey>(
     case 'maxCommitsToAnalyze':
     case 'evolution.snapshotIntervalDays':
     case 'evolution.maxSnapshots':
+    case 'evolution.historyMonths':
     case 'evolution.maxSeries':
       return isNumber(value);
     case 'evolution.showInactivePeriods':

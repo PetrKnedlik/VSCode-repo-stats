@@ -3,6 +3,7 @@
  * This module has NO VSCode dependencies and is fully testable.
  */
 
+import * as os from 'os';
 import * as path from 'path';
 import { simpleGit, type SimpleGit } from 'simple-git';
 import {
@@ -42,7 +43,11 @@ export class GitAnalyzer implements GitClient {
 
   constructor(repoPath: string) {
     this.repoPath = repoPath;
-    this.git = simpleGit(repoPath, { config: ['core.quotePath=false'] });
+    this.git = simpleGit(repoPath, {
+      config: ['core.quotePath=false'],
+      // simple-git defaults to 5; log chunks and blame are CPU-bound per process.
+      maxConcurrentProcesses: Math.max(5, os.cpus().length),
+    });
   }
 
   async isRepo(): Promise<boolean> {
@@ -87,14 +92,10 @@ export class GitAnalyzer implements GitClient {
     maxCommits: number,
     excludePatterns: string[] = []
   ): Promise<CommitAnalytics> {
-    const rawLog = await this.git.raw([
-      'log',
-      'HEAD',
-      `--max-count=${maxCommits}`,
-      '--no-renames',
-      '--format=__COMMIT__%x1f%H%x1f%an%x1f%ae%x1f%aI%x1f%s',
-      '--numstat',
-    ]);
+    const rawLog = await this.logInParallelChunks(
+      ['--no-renames', '--format=__COMMIT__%x1f%H%x1f%an%x1f%ae%x1f%aI%x1f%s', '--numstat'],
+      maxCommits
+    );
 
     return buildCommitAnalytics(
       parseCommitHistoryLog(rawLog, excludePatterns),
@@ -111,12 +112,7 @@ export class GitAnalyzer implements GitClient {
 
     // Get the last commit date for each file using git log with name-only
     // Format: date\n\nfile1\nfile2\n\ndate\n\nfile3\n...
-    const rawLog = await this.git.raw([
-      'log',
-      'HEAD',
-      '--format=%aI',
-      '--name-only',
-    ]);
+    const rawLog = await this.logInParallelChunks(['--format=%aI', '--name-only']);
 
     const lines = rawLog.split('\n');
     let currentDate: string | null = null;
@@ -198,6 +194,42 @@ export class GitAnalyzer implements GitClient {
     }
 
     return result;
+  }
+
+  /**
+   * `git log` over HEAD split into --skip/--max-count chunks that run concurrently.
+   * The diffing (--numstat/--name-only) is the slow part and git does it on one core.
+   * Chunks are joined in order, so the output matches a single `git log` run.
+   */
+  private async logInParallelChunks(logArgs: string[], maxCount?: number): Promise<string> {
+    const countArgs = maxCount === undefined ? [] : [`--max-count=${maxCount}`];
+    const [headRaw, countRaw] = await Promise.all([
+      this.git.revparse(['HEAD']),
+      this.git.raw(['rev-list', '--count', ...countArgs, 'HEAD']),
+    ]);
+    const head = headRaw.trim();
+    const total = Number.parseInt(countRaw.trim(), 10);
+    if (!Number.isFinite(total)) {
+      throw new GitOperationError(
+        `Unexpected commit count "${countRaw.trim()}" for repository "${this.repoPath}".`,
+        'COMMIT_COUNT_FAILED'
+      );
+    }
+
+    const chunkCount = Math.max(1, Math.min(os.cpus().length, Math.ceil(total / 250)));
+    const chunkSize = Math.ceil(total / chunkCount);
+    const chunks = await Promise.all(
+      Array.from({ length: chunkCount }, (_, index) =>
+        this.git.raw([
+          'log',
+          head,
+          `--skip=${index * chunkSize}`,
+          `--max-count=${Math.min(chunkSize, total - index * chunkSize)}`,
+          ...logArgs,
+        ])
+      )
+    );
+    return chunks.join('\n');
   }
 
   async raw(args: string[]): Promise<string> {

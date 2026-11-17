@@ -54,13 +54,18 @@ export class MemberEvolutionRuntime {
   readonly binaryExtensions: Set<string>;
   readonly directoryBucketPrefix: string | null;
   expectedBlameMisses = 0;
+  skippedBlameFiles = 0;
 
   constructor(
     readonly member: AnalysisTarget['members'][number],
     readonly settings: ExtensionSettings,
     private readonly signal?: AbortSignal
   ) {
-    this.git = simpleGit(member.repoPath, { config: ['core.quotePath=false'] });
+    this.git = simpleGit(member.repoPath, {
+      config: ['core.quotePath=false'],
+      // simple-git defaults to 5, which would throttle the blame workers below.
+      maxConcurrentProcesses: Math.max(5, os.cpus().length),
+    });
     this.shouldExcludePath = createPathPatternMatcher([
       ...settings.excludePatterns,
       ...(member.excludePatterns ?? []),
@@ -130,57 +135,59 @@ export class MemberEvolutionRuntime {
       return totalsBySha;
     }
 
-    let previousCommit: MemberCommit | null = null;
+    // Phase 1: all snapshot diffs are independent of each other, so fetch them concurrently.
+    const diffsBySnapshot: DiffStatusEntry[][] = await Promise.all(
+      commits.map(async (commit, commitIndex) =>
+        commitIndex === 0
+          ? (await this.getTrackedPathsAtCommit(commit.sha)).map((newPath) => ({ newPath }))
+          : this.getDiffStatusBetweenCommits(commits[commitIndex - 1].sha, commit.sha)
+      )
+    );
+    throwIfCancelled(this.signal);
+
+    const blamePathsBySnapshot = diffsBySnapshot.map((diffs, snapshotIndex) => {
+      // The first snapshot is the baseline later ones build on; capping it loses files for good.
+      const maxFilesPerSnapshot = snapshotIndex === 0 ? Infinity : this.settings.evolution.maxFilesPerSnapshot;
+      const uniqueChangedPaths = Array.from(new Set(
+        diffs
+          .map((diff) => diff.newPath)
+          .filter((newPath): newPath is string => newPath !== undefined && this.shouldAnalyzeFile(newPath))
+      ));
+      this.skippedBlameFiles += Math.max(0, uniqueChangedPaths.length - maxFilesPerSnapshot);
+      return uniqueChangedPaths.slice(0, maxFilesPerSnapshot);
+    });
+
+    // Phase 2: one blame pool across every snapshot, so CPUs stay busy even when a snapshot changed few files.
+    const blamedBySnapshot = await this.computeHistogramsForSnapshots(
+      commits,
+      blamePathsBySnapshot,
+      (completedSnapshots) => onProgress?.({ completedSnapshots, totalSnapshots: commits.length })
+    );
+
+    // Phase 3: fold diffs and blames in history order (same bookkeeping as a sequential walk).
     const fileHistograms = new Map<string, EvolutionFileHistogram>();
     const runningTotals = createEmptyHistogram();
+    const removeFile = (filePath: string) => {
+      const removedHistogram = fileHistograms.get(filePath);
+      if (removedHistogram) {
+        mergeHistogram(runningTotals, removedHistogram, -1);
+        fileHistograms.delete(filePath);
+      }
+    };
 
     for (let commitIndex = 0; commitIndex < commits.length; commitIndex += 1) {
-      throwIfCancelled(this.signal);
-
       const commit = commits[commitIndex];
-      const changedPaths: string[] = [];
 
-      if (!previousCommit) {
-        const initialPaths = await this.getTrackedPathsAtCommit(commit.sha);
-        for (const filePath of initialPaths) {
-          changedPaths.push(filePath);
+      for (const diff of diffsBySnapshot[commitIndex]) {
+        if (diff.oldPath && diff.oldPath !== diff.newPath) {
+          removeFile(diff.oldPath);
         }
-      } else {
-        const diffEntries = await this.getDiffStatusBetweenCommits(previousCommit.sha, commit.sha);
-
-        for (const diff of diffEntries) {
-          if (diff.oldPath && diff.oldPath !== diff.newPath) {
-            const removedHistogram = fileHistograms.get(diff.oldPath);
-            if (removedHistogram) {
-              mergeHistogram(runningTotals, removedHistogram, -1);
-              fileHistograms.delete(diff.oldPath);
-            }
-          }
-
-          if (diff.newPath) {
-            if (this.shouldAnalyzeFile(diff.newPath)) {
-              changedPaths.push(diff.newPath);
-            } else {
-              const removedHistogram = fileHistograms.get(diff.newPath);
-              if (removedHistogram) {
-                mergeHistogram(runningTotals, removedHistogram, -1);
-                fileHistograms.delete(diff.newPath);
-              }
-            }
-          }
+        if (diff.newPath && !this.shouldAnalyzeFile(diff.newPath)) {
+          removeFile(diff.newPath);
         }
       }
 
-      const selectedChangedPaths = Array.from(new Set(changedPaths)).slice(0, 500);
-      const updatedHistograms = await this.computeHistogramsForFiles(
-        selectedChangedPaths,
-        commit.sha,
-        commit.timestamp
-      );
-
-      throwIfCancelled(this.signal);
-
-      for (const [filePath, histogram] of updatedHistograms) {
+      for (const [filePath, histogram] of blamedBySnapshot[commitIndex]) {
         const existing = fileHistograms.get(filePath);
         if (existing) {
           mergeHistogram(runningTotals, existing, -1);
@@ -191,14 +198,54 @@ export class MemberEvolutionRuntime {
       }
 
       totalsBySha.set(commit.sha, cloneHistogram(runningTotals));
-      previousCommit = commit;
-      onProgress?.({
-        completedSnapshots: commitIndex + 1,
-        totalSnapshots: commits.length,
-      });
     }
 
     return totalsBySha;
+  }
+
+  private async computeHistogramsForSnapshots(
+    commits: MemberCommit[],
+    pathsBySnapshot: string[][],
+    onSnapshotsCompleted: (completedSnapshots: number) => void
+  ): Promise<Array<Map<string, EvolutionFileHistogram>>> {
+    const results = pathsBySnapshot.map(() => new Map<string, EvolutionFileHistogram>());
+    const remainingBySnapshot = pathsBySnapshot.map((paths) => paths.length);
+    const jobs = pathsBySnapshot.flatMap((paths, snapshotIndex) =>
+      paths.map((filePath) => ({ snapshotIndex, filePath }))
+    );
+
+    // Jobs run roughly in history order, so report the finished prefix of snapshots.
+    let completedSnapshots = 0;
+    const reportCompletedPrefix = () => {
+      const before = completedSnapshots;
+      while (completedSnapshots < remainingBySnapshot.length && remainingBySnapshot[completedSnapshots] === 0) {
+        completedSnapshots += 1;
+      }
+      if (completedSnapshots !== before) {
+        onSnapshotsCompleted(completedSnapshots);
+      }
+    };
+    reportCompletedPrefix();
+
+    const concurrency = Math.max(2, os.cpus().length);
+    let nextJob = 0;
+    const workers = Array.from({ length: Math.min(concurrency, jobs.length) }, async () => {
+      while (nextJob < jobs.length) {
+        throwIfCancelled(this.signal);
+
+        const { snapshotIndex, filePath } = jobs[nextJob];
+        nextJob += 1;
+        const commit = commits[snapshotIndex];
+        const histogram = await this.computeFileHistogram(filePath, commit.sha, commit.timestamp);
+        results[snapshotIndex].set(filePath, histogram);
+        remainingBySnapshot[snapshotIndex] -= 1;
+        reportCompletedPrefix();
+      }
+    });
+
+    await Promise.all(workers);
+    throwIfCancelled(this.signal);
+    return results;
   }
 
   private async getTrackedPathsAtCommit(commitSha: string): Promise<string[]> {
@@ -262,34 +309,6 @@ export class MemberEvolutionRuntime {
     }
 
     return !this.shouldExcludePath(normalizedPath);
-  }
-
-  private async computeHistogramsForFiles(
-    paths: string[],
-    commitSha: string,
-    defaultTimestamp: number
-  ): Promise<Map<string, EvolutionFileHistogram>> {
-    throwIfCancelled(this.signal);
-
-    const result = new Map<string, EvolutionFileHistogram>();
-    const concurrency = Math.max(2, Math.min(12, os.cpus().length));
-    let index = 0;
-
-    const workers = Array.from({ length: Math.min(concurrency, paths.length) }, async () => {
-      while (index < paths.length) {
-        throwIfCancelled(this.signal);
-
-        const currentIndex = index;
-        index += 1;
-
-        const filePath = paths[currentIndex];
-        const histogram = await this.computeFileHistogram(filePath, commitSha, defaultTimestamp);
-        result.set(filePath, histogram);
-      }
-    });
-
-    await Promise.all(workers);
-    return result;
   }
 
   private async computeFileHistogram(

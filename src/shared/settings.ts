@@ -120,6 +120,13 @@ const scopedSettingAppliers: {
       maxSnapshots: value,
     },
   }),
+  'evolution.historyMonths': (settings, value) => ({
+    ...settings,
+    evolution: {
+      ...settings.evolution,
+      historyMonths: value,
+    },
+  }),
   'evolution.maxSeries': (settings, value) => ({
     ...settings,
     evolution: {
@@ -229,6 +236,8 @@ export function createEvolutionAnalysisSettingsSnapshot(settings: ExtensionSetti
       samplingMode: settings.evolution.samplingMode,
       snapshotIntervalDays: settings.evolution.snapshotIntervalDays,
       maxSnapshots: settings.evolution.maxSnapshots,
+      historyMonths: settings.evolution.historyMonths,
+      maxFilesPerSnapshot: settings.evolution.maxFilesPerSnapshot,
       cohortFormat: settings.evolution.cohortFormat,
     },
   };

@@ -41,6 +41,7 @@ export type EvolutionProgressCallback = (update: EvolutionProgressUpdate) => voi
 interface EvolutionRuntimeLike {
   readonly member: AnalysisTarget['members'][number];
   readonly expectedBlameMisses: number;
+  readonly skippedBlameFiles: number;
   getHeadInfo(): Promise<MemberHeadInfo>;
   getCommitHistory(branch: string): Promise<MemberCommit[]>;
   analyzeCommits(
@@ -111,7 +112,11 @@ export class TargetEvolutionAnalyzer {
     });
 
     const mergedEvents = this.mergeEvents(memberHeads, commitHistories);
-    const sampledEvents = this.sampleEvents(mergedEvents, emitProgress, totalRepositories);
+    const sampledEvents = this.sampleEvents(
+      limitToRecentMonths(mergedEvents, this.settings.evolution.historyMonths),
+      emitProgress,
+      totalRepositories
+    );
     throwIfCancelled(this.signal);
 
     emitProgress({
@@ -255,6 +260,7 @@ export class TargetEvolutionAnalyzer {
       domains: toEvolutionSeries(snapshots, snapshotTotals.domain),
       diagnostics: {
         expectedBlameMisses: runtimes.reduce((sum, runtime) => sum + runtime.expectedBlameMisses, 0),
+        skippedBlameFiles: runtimes.reduce((sum, runtime) => sum + runtime.skippedBlameFiles, 0),
       },
     });
   }
@@ -358,6 +364,29 @@ export class TargetEvolutionAnalyzer {
     const payload = JSON.stringify(createEvolutionAnalysisSettingsSnapshot(this.settings));
     return crypto.createHash('sha1').update(payload).digest('hex').slice(0, 16);
   }
+}
+
+/**
+ * Keeps events from the last `months` months (0 = all). Events must be sorted by timestamp.
+ * The last event before the cutoff is kept so the chart starts with the state at the range start.
+ */
+export function limitToRecentMonths<T extends { timestamp: number }>(
+  events: T[],
+  months: number,
+  now = new Date()
+): T[] {
+  if (months <= 0) {
+    return events;
+  }
+
+  // Clamp the day so 31 Mar - 1 month is 28/29 Feb, not 3 Mar.
+  const lastDayOfTargetMonth = new Date(now.getFullYear(), now.getMonth() - months + 1, 0);
+  const cutoff = new Date(now);
+  cutoff.setFullYear(lastDayOfTargetMonth.getFullYear(), lastDayOfTargetMonth.getMonth(), Math.min(now.getDate(), lastDayOfTargetMonth.getDate()));
+  const cutoffSeconds = cutoff.getTime() / 1000;
+  const firstInRange = events.findIndex((event) => event.timestamp >= cutoffSeconds);
+  const start = firstInRange === -1 ? events.length - 1 : Math.max(0, firstInRange - 1);
+  return events.slice(Math.max(0, start));
 }
 
 function estimateEtaSeconds(startedAt: number, progress: number): number | undefined {

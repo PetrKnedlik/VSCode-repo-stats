@@ -21,6 +21,8 @@ export interface EvolutionSettings {
   snapshotIntervalDays: number;
   showInactivePeriods: boolean;
   maxSnapshots: number;
+  historyMonths: number;
+  maxFilesPerSnapshot: number;
   maxSeries: number;
   cohortFormat: string;
 }
@@ -61,6 +63,7 @@ export interface RepoScopableSettingValueMap {
   'evolution.snapshotIntervalDays': number;
   'evolution.showInactivePeriods': boolean;
   'evolution.maxSnapshots': number;
+  'evolution.historyMonths': number;
   'evolution.maxSeries': number;
   'evolution.cohortFormat': string;
   commitMetadata: CommitMetadataSettings;
@@ -77,6 +80,7 @@ export const REPO_SCOPABLE_SETTING_KEYS = [
   'evolution.snapshotIntervalDays',
   'evolution.showInactivePeriods',
   'evolution.maxSnapshots',
+  'evolution.historyMonths',
   'evolution.maxSeries',
   'evolution.cohortFormat',
   'commitMetadata',
