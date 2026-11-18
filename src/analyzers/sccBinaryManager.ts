@@ -5,12 +5,13 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
 import { createWriteStream } from 'fs';
 import * as https from 'https';
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 // ============================================================================
 // Configuration
@@ -96,7 +97,7 @@ export class SccBinaryManager {
     try {
       const command = process.platform === 'win32' ? 'where scc' : 'which scc';
       const { stdout } = await execAsync(command);
-      const sccPath = stdout.trim().split('\n')[0];
+      const sccPath = stdout.trim().split(/\r?\n/)[0];
 
       // Verify it actually works
       await execAsync(`"${sccPath}" --version`);
@@ -160,7 +161,7 @@ export class SccBinaryManager {
 
     // Extract the binary
     onProgress?.(70);
-    await this.extractArchive(archivePath, this.storagePath, platform);
+    await this.extractArchive(archivePath, this.storagePath);
 
     // Make executable on Unix
     if (platform !== 'win32') {
@@ -200,7 +201,7 @@ export class SccBinaryManager {
 
     try {
       const { stdout } = await execAsync(`"${binaryPath}" --version`);
-      const version = stdout.trim().split('\n')[0];
+      const version = stdout.trim().split(/\r?\n/)[0];
       return { version, source: this.cachedSource };
     } catch {
       return { version: SCC_VERSION, source: this.cachedSource };
@@ -299,19 +300,11 @@ export class SccBinaryManager {
   /**
    * Extract archive (tar.gz or zip) to destination directory.
    */
-  private async extractArchive(
-    archivePath: string,
-    destDir: string,
-    platform: string
-  ): Promise<void> {
-    if (platform === 'win32') {
-      // Use PowerShell on Windows for zip files
-      await execAsync(
-        `powershell -command "Expand-Archive -Path '${archivePath}' -DestinationPath '${destDir}' -Force"`
-      );
-    } else {
-      // Use tar for tar.gz on Unix-like systems
-      await execAsync(`tar -xzf "${archivePath}" -C "${destDir}"`);
-    }
+  private async extractArchive(archivePath: string, destDir: string): Promise<void> {
+    // System32 bsdtar reads zip; a GNU tar earlier on PATH (Git Bash) does not.
+    const tar = process.platform === 'win32'
+      ? path.join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe')
+      : 'tar';
+    await execFileAsync(tar, ['-xf', archivePath, '-C', destDir]);
   }
 }
